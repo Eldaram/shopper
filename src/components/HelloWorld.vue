@@ -7,11 +7,9 @@
     </div>
     <h1 class="gradient-text">{{ msg }}</h1>
     <p class="subtitle">A premium foundation scaffolded with Electron, Vue 3, Vite, and Vitest.</p>
-    
+
     <div class="card-action">
-      <button id="counter-btn" @click="count++">
-        Clicks: {{ count }}
-      </button>
+      <button id="counter-btn" @click="count++">Clicks: {{ count }}</button>
     </div>
 
     <div class="features">
@@ -40,15 +38,15 @@ export default {
   props: {
     msg: {
       type: String,
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
     return {
-      count: 0
-    }
-  }
-}
+      count: 0,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -139,7 +137,8 @@ h1 {
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {

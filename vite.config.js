@@ -7,7 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      'electron': path.resolve(__dirname, './src/__mocks__/electron.js'),
+      electron: path.resolve(__dirname, './src/__mocks__/electron.js'),
     },
   },
   base: './',
@@ -15,10 +15,8 @@ export default defineConfig({
     environment: 'node',
     server: {
       deps: {
-        inline: [
-          /main\.js/
-        ]
-      }
-    }
+        inline: [/main\.js/],
+      },
+    },
   },
 });

@@ -21,7 +21,7 @@ const mockElectron = {
     webContents = {
       openDevTools: vi.fn(),
     };
-  }
+  },
 };
 mockElectron.BrowserWindow.lastInstance = null;
 
@@ -71,14 +71,16 @@ describe('Electron Main Process', () => {
       mockElectron.app.isPackaged = true;
       process.env.NODE_ENV = 'production';
       const win = createWindow();
-      expect(win.loadFile).toHaveBeenCalledWith(expect.stringContaining(path.join('dist', 'index.html')));
+      expect(win.loadFile).toHaveBeenCalledWith(
+        expect.stringContaining(path.join('dist', 'index.html'))
+      );
     });
   });
 
   describe('Single Instance Lock', () => {
     it('should continue initialization if primary instance', () => {
       mockElectron.app.requestSingleInstanceLock.mockReturnValue(true);
-      
+
       const result = initializeApp();
       expect(result).toBe(true);
       expect(mockElectron.app.quit).not.toHaveBeenCalled();
@@ -87,7 +89,7 @@ describe('Electron Main Process', () => {
 
     it('should quit the app if secondary instance', () => {
       mockElectron.app.requestSingleInstanceLock.mockReturnValue(false);
-      
+
       const result = initializeApp();
       expect(result).toBe(false);
       expect(mockElectron.app.quit).toHaveBeenCalled();
