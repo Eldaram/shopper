@@ -25,16 +25,13 @@ describe('Preload Script', () => {
   });
 
   it('should expose electronAPI to the main world', () => {
-    expect(contextBridge.exposeInMainWorld).toHaveBeenCalledWith(
-      'electronAPI',
-      expect.any(Object)
-    );
+    expect(contextBridge.exposeInMainWorld).toHaveBeenCalledWith('electronAPI', expect.any(Object));
   });
 
   it('electronAPI.ping should invoke the ping IPC channel', async () => {
     // Get the exposed api object passed to exposeInMainWorld
     const apiObject = contextBridge.exposeInMainWorld.mock.calls.find(
-      call => call[0] === 'electronAPI'
+      (call) => call[0] === 'electronAPI'
     )[1];
     expect(apiObject.ping).toBeDefined();
 

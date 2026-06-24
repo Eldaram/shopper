@@ -42,7 +42,7 @@ describe('HelloWorld.vue', () => {
     const button = wrapper.find('.ping-btn');
     await button.trigger('click');
     // Wait for the async call and reactivity cycle to complete
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockPing).toHaveBeenCalled();
     expect(button.text()).toContain('Bridge Response: pong');
@@ -50,4 +50,3 @@ describe('HelloWorld.vue', () => {
     delete window.electronAPI;
   });
 });
-
