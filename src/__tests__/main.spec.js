@@ -99,7 +99,7 @@ describe('Electron Main Process', () => {
       process.env.NODE_ENV = 'development';
       const win = createWindow();
       expect(win.loadURL).toHaveBeenCalledWith('http://localhost:5173');
-      expect(win.webContents.openDevTools).not.toHaveBeenCalled();
+      expect(win.webContents.openDevTools).toHaveBeenCalled();
     });
 
     it('should load index.html in production mode', () => {
@@ -185,7 +185,18 @@ describe('Electron Main Process', () => {
     it('should register IPC handlers on initializeApp', async () => {
       initializeApp();
       await Promise.resolve();
-      expect(mockElectron.ipcMain.handle).toHaveBeenCalledWith('ping', expect.any(Function));
+      expect(mockElectron.ipcMain.handle).toHaveBeenCalledWith(
+        'get-categories',
+        expect.any(Function)
+      );
+      expect(mockElectron.ipcMain.handle).toHaveBeenCalledWith(
+        'get-products',
+        expect.any(Function)
+      );
+      expect(mockElectron.ipcMain.handle).toHaveBeenCalledWith(
+        'get-tva-rates',
+        expect.any(Function)
+      );
     });
   });
 });
