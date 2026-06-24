@@ -7,6 +7,7 @@
       :selected-category-id="selectedCategoryId"
       :active-ancestor-id="activeAncestorId"
       @select-category="handleSelectCategory"
+      @contextmenu-category="handleCategoryContextMenu"
     />
 
     <!-- Main Workspace -->
@@ -16,7 +17,7 @@
         <Breadcrumbs :path="breadcrumbsPath" @select-category="handleSelectCategory" />
 
         <!-- Search Bar (Visible only when not viewing product details) -->
-        <div v-if="!focusedProduct" class="search-container">
+        <div v-if="!focusedProduct && !isCreatingProduct" class="search-container">
           <input
             v-model="searchQuery"
             type="text"
@@ -27,14 +28,19 @@
       </header>
 
       <!-- Content Area -->
-      <div class="content-area">
-        <!-- Transition between grid view and details view -->
-        <div v-if="focusedProduct">
+      <div class="content-area" @contextmenu="handleWorkspaceContextMenu">
+        <!-- Transition between grid view and details/creation view -->
+        <div v-if="focusedProduct || isCreatingProduct">
           <ProductDetail
+            ref="productDetail"
             :product="focusedProduct"
+            :mode="isCreatingProduct ? 'create' : 'view'"
+            :preselected-category-id="preselectedCategoryId"
+            :draft="draftProduct"
             :categories="categories"
             :tva-rates="tvaRates"
-            @close="focusedProduct = null"
+            @close="handleCloseDetail"
+            @product-created="handleProductCreated"
           />
         </div>
 
@@ -56,6 +62,7 @@
                 :key="sub.id"
                 :category="sub"
                 @click="handleSelectCategory(sub.id)"
+                @contextmenu="handleCategoryContextMenu($event, sub)"
               />
             </div>
           </div>
@@ -75,7 +82,7 @@
                 v-for="prod in filteredProducts"
                 :key="prod.id"
                 :product="prod"
-                @click="focusedProduct = prod"
+                @click="handleSelectProduct(prod)"
               />
             </div>
 
@@ -88,6 +95,27 @@
         </div>
       </div>
     </main>
+
+    <!-- Floating Action Button (FAB) for fast item creation -->
+    <button class="fab-btn" @click="handleFabClick" title="Créer un article">
+      <span>+</span>
+    </button>
+
+    <!-- Custom Context Menu -->
+    <div
+      v-if="contextMenu.visible"
+      class="context-menu"
+      :style="{ top: contextMenu.y + 'px', left: contextMenu.x + 'px' }"
+    >
+      <div class="context-menu-item" @click="handleCreateItemFromContextMenu">
+        <span class="context-menu-icon">➕</span>
+        <span v-if="draftProduct">Reprise du brouillon</span>
+        <span v-else
+          >Ajouter un article
+          {{ contextMenu.targetCategory ? `dans ${contextMenu.targetCategory.name}` : '' }}</span
+        >
+      </div>
+    </div>
   </div>
 </template>
 
@@ -115,6 +143,15 @@ export default {
       selectedCategoryId: null,
       focusedProduct: null,
       searchQuery: '',
+      isCreatingProduct: false,
+      draftProduct: null,
+      preselectedCategoryId: null,
+      contextMenu: {
+        visible: false,
+        x: 0,
+        y: 0,
+        targetCategory: null,
+      },
     };
   },
   computed: {
@@ -145,6 +182,8 @@ export default {
       }
       if (this.focusedProduct !== null) {
         path.push({ name: this.focusedProduct.name, type: 'product' });
+      } else if (this.isCreatingProduct) {
+        path.push({ name: "Création d'un article", type: 'product' });
       }
       return path;
     },
@@ -180,6 +219,15 @@ export default {
   },
   async mounted() {
     await this.fetchData();
+    window.addEventListener('click', this.closeContextMenu);
+    if (window.electronAPI && typeof window.electronAPI.onMenuCreateProduct === 'function') {
+      window.electronAPI.onMenuCreateProduct(() => {
+        this.openCreateProduct(this.selectedCategoryId);
+      });
+    }
+  },
+  beforeUnmount() {
+    window.removeEventListener('click', this.closeContextMenu);
   },
   methods: {
     async fetchData() {
@@ -196,9 +244,16 @@ export default {
         console.error('Failed to load catalogue data:', err);
       }
     },
-    handleSelectCategory(catId) {
+    async handleSelectCategory(catId) {
+      const proceed = await this.confirmExitCreateMode();
+      if (!proceed) return;
       this.selectedCategoryId = catId;
       this.focusedProduct = null;
+    },
+    async handleSelectProduct(prod) {
+      const proceed = await this.confirmExitCreateMode();
+      if (!proceed) return;
+      this.focusedProduct = prod;
     },
     getCategoryAndDescendantIds(catId) {
       const ids = [catId];
@@ -212,8 +267,111 @@ export default {
       findChildren(catId);
       return ids;
     },
+    openCreateProduct(categoryId = null) {
+      if (this.draftProduct) {
+        this.preselectedCategoryId = this.draftProduct.category_id;
+      } else {
+        this.preselectedCategoryId = categoryId;
+      }
+      this.isCreatingProduct = true;
+      this.focusedProduct = null;
+    },
+    async confirmExitCreateMode() {
+      if (!this.isCreatingProduct) return true;
+
+      const isDirty = this.$refs.productDetail ? this.$refs.productDetail.isFormDirty() : false;
+      const isDraftLoaded = this.draftProduct !== null;
+      if (!isDirty && !isDraftLoaded) {
+        this.isCreatingProduct = false;
+        return true;
+      }
+
+      let choice = 2; // Default to Exit and lost
+      if (
+        window.electronAPI &&
+        typeof window.electronAPI.showExitConfirmationDialog === 'function'
+      ) {
+        choice = await window.electronAPI.showExitConfirmationDialog();
+      } else {
+        const res = window.confirm(
+          "Voulez-vous garder l'article en brouillon ?\n\nOK = Garder le brouillon\nAnnuler = Abandonner"
+        );
+        choice = res ? 0 : 2;
+      }
+
+      if (choice === 0) {
+        this.saveDraft();
+        this.isCreatingProduct = false;
+        return true;
+      } else if (choice === 1) {
+        return false; // Stay on page
+      } else {
+        this.clearDraft();
+        this.isCreatingProduct = false;
+        return true;
+      }
+    },
+    saveDraft() {
+      if (this.$refs.productDetail) {
+        this.draftProduct = this.$refs.productDetail.getFormData();
+      }
+    },
+    clearDraft() {
+      this.draftProduct = null;
+    },
+    async handleCloseDetail() {
+      const proceed = await this.confirmExitCreateMode();
+      if (!proceed) return;
+      this.focusedProduct = null;
+      this.isCreatingProduct = false;
+    },
+    async handleProductCreated(newProduct) {
+      this.clearDraft();
+      this.isCreatingProduct = false;
+      this.focusedProduct = null;
+      await this.fetchData();
+      this.selectedCategoryId = newProduct.category_id;
+    },
+    handleFabClick() {
+      this.openCreateProduct(this.selectedCategoryId);
+    },
+    handleCategoryContextMenu(event, category) {
+      this.contextMenu = {
+        visible: true,
+        x: event.clientX,
+        y: event.clientY,
+        targetCategory: category,
+      };
+    },
+    handleWorkspaceContextMenu(event) {
+      if (
+        event.target.tagName === 'INPUT' ||
+        event.target.tagName === 'SELECT' ||
+        event.target.tagName === 'BUTTON'
+      ) {
+        return;
+      }
+
+      let currentCategory = null;
+      if (this.selectedCategoryId !== null) {
+        currentCategory = this.categories.find((c) => c.id === this.selectedCategoryId) || null;
+      }
+
+      this.contextMenu = {
+        visible: true,
+        x: event.clientX,
+        y: event.clientY,
+        targetCategory: currentCategory,
+      };
+    },
+    handleCreateItemFromContextMenu() {
+      this.openCreateProduct(this.contextMenu.targetCategory?.id || null);
+      this.closeContextMenu();
+    },
+    closeContextMenu() {
+      this.contextMenu.visible = false;
+    },
     loadBrowserMocks() {
-      // Mock data matching the seeder for browser-only mode / tests fallback
       this.categories = [
         {
           id: 1,

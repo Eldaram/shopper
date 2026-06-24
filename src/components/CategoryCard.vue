@@ -1,5 +1,9 @@
 <template>
-  <div class="square-card" @click="$emit('click')">
+  <div
+    class="square-card"
+    @click="$emit('click')"
+    @contextmenu.prevent.stop="$emit('contextmenu', $event)"
+  >
     <div class="card-img-container">
       <img
         v-if="category.image_path"
@@ -28,7 +32,7 @@ export default {
       required: true,
     },
   },
-  emits: ['click'],
+  emits: ['click', 'contextmenu'],
   computed: {
     initials() {
       if (!this.category.name) return '';

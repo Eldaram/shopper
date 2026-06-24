@@ -16,6 +16,7 @@
             class="nav-item"
             :class="{ active: selectedCategoryId === null }"
             @click="$emit('select-category', null)"
+            @contextmenu.prevent="$emit('contextmenu-category', $event, null)"
           >
             <span>Tout le catalogue</span>
             <span class="nav-item-count">{{ products.length }}</span>
@@ -28,6 +29,7 @@
               active: category.id === selectedCategoryId || category.id === activeAncestorId,
             }"
             @click="$emit('select-category', category.id)"
+            @contextmenu.prevent="$emit('contextmenu-category', $event, category)"
           >
             <span>{{ category.name }}</span>
             <span class="nav-item-count">{{ countProducts(category.id) }}</span>
@@ -59,7 +61,7 @@ export default {
       default: null,
     },
   },
-  emits: ['select-category'],
+  emits: ['select-category', 'contextmenu-category'],
   computed: {
     mainCategories() {
       return this.categories.filter((c) => c.parent_id === null);

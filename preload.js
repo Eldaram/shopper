@@ -15,4 +15,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getCategories: () => ipcRenderer.invoke('get-categories'),
   getProducts: () => ipcRenderer.invoke('get-products'),
   getTvaRates: () => ipcRenderer.invoke('get-tva-rates'),
+  createProduct: (data) => ipcRenderer.invoke('create-product', data),
+  selectImage: () => ipcRenderer.invoke('select-image'),
+  saveImage: (filePath) => ipcRenderer.invoke('save-image', filePath),
+  showExitConfirmationDialog: () => ipcRenderer.invoke('show-exit-dialog'),
+  onMenuCreateProduct: (callback) =>
+    ipcRenderer.on('menu-create-product', (_event, value) => callback(value)),
 });

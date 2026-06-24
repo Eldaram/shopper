@@ -625,3 +625,151 @@ body {
     max-width: 240px;
   }
 }
+
+/* Floating Action Button (FAB) */
+.fab-btn {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent-gradient);
+  color: white;
+  border: none;
+  font-size: 28px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fab-btn:hover {
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(135deg, #95bfa0 0%, #638c81 100%);
+}
+
+/* Custom Context Menu */
+.context-menu {
+  position: fixed;
+  background-color: var(--bg-sidebar);
+  border: 1px solid var(--border-hover);
+  border-radius: 8px;
+  box-shadow: var(--card-shadow);
+  padding: 6px 0;
+  z-index: 1000;
+  min-width: 220px;
+  backdrop-filter: blur(10px);
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.context-menu-item:hover {
+  background-color: var(--color-deep-teal);
+  color: #fff;
+}
+
+.context-menu-icon {
+  font-size: 16px;
+}
+
+/* Active buttons in ProductDetail */
+.active-btn {
+  cursor: pointer !important;
+  opacity: 1 !important;
+}
+
+.btn-secondary.active-btn {
+  border-color: var(--color-muted-teal) !important;
+  color: var(--color-muted-teal) !important;
+}
+
+.btn-secondary.active-btn:hover {
+  background-color: rgba(132, 169, 140, 0.1) !important;
+  color: var(--color-ash-grey) !important;
+}
+
+.btn-primary.active-btn {
+  background: var(--accent-gradient) !important;
+  color: white !important;
+}
+
+.btn-primary.active-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+/* Upload image styling inside ProductDetail */
+.detail-image-sec.clickable {
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+  border: 2px dashed var(--border-color);
+  border-radius: 8px;
+}
+
+.detail-image-sec.clickable:hover {
+  border-color: var(--color-muted-teal);
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.upload-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.6;
+  text-align: center;
+}
+
+.upload-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.detail-image-sec.drag-over {
+  border-color: var(--color-muted-teal) !important;
+  background-color: rgba(132, 169, 140, 0.15) !important;
+  box-shadow: 0 0 15px var(--accent-glow) !important;
+}
+
+.btn-delete-img {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background-color: rgba(220, 53, 69, 0.85) !important;
+  color: white !important;
+  border: none !important;
+  width: 36px;
+  height: 36px;
+  border-radius: 50% !important;
+  cursor: pointer !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  opacity: 1 !important;
+}
+
+.btn-delete-img:hover {
+  background-color: #dc3545 !important;
+  transform: scale(1.1) !important;
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.5) !important;
+}
