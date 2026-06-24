@@ -22,6 +22,9 @@
         <span class="feature-icon">🛡️</span>
         <h3>Main & Preload</h3>
         <p>Configured with secure IPC context isolation.</p>
+        <button class="ping-btn" @click="pingBridge" :disabled="pinging">
+          {{ pingStatus || 'Test Security Bridge' }}
+        </button>
       </div>
       <div class="feature-item">
         <span class="feature-icon">🧪</span>
@@ -44,7 +47,28 @@ export default {
   data() {
     return {
       count: 0,
+      pingStatus: '',
+      pinging: false,
     };
+  },
+  methods: {
+    async pingBridge() {
+      this.pinging = true;
+      this.pingStatus = 'Pinging...';
+      try {
+        if (window.electronAPI && window.electronAPI.ping) {
+          const response = await window.electronAPI.ping();
+          this.pingStatus = `Bridge Response: ${response}`;
+        } else {
+          this.pingStatus = 'No Bridge detected (Web Mode)';
+        }
+      } catch (err) {
+        this.pingStatus = 'Bridge Error';
+        console.error(err);
+      } finally {
+        this.pinging = false;
+      }
+    },
   },
 };
 </script>
@@ -134,6 +158,28 @@ h1 {
   font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.5;
+}
+
+.ping-btn {
+  margin-top: 12px;
+  background: rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ping-btn:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.4);
+  border-color: rgba(99, 102, 241, 0.6);
+}
+
+.ping-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 @keyframes float {

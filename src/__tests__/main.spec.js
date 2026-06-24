@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+globalThis.vi = vi;
 import path from 'path';
 import Module from 'module';
 
@@ -22,6 +23,10 @@ const mockElectron = {
       openDevTools: vi.fn(),
     };
   },
+  ipcMain: {
+    handle: vi.fn(),
+    removeHandler: vi.fn(),
+  },
 };
 mockElectron.BrowserWindow.lastInstance = null;
 
@@ -40,6 +45,7 @@ describe('Electron Main Process', () => {
   beforeEach(() => {
     mockElectron.BrowserWindow.lastInstance = null;
     mockElectron.app.isPackaged = false;
+    mockElectron.app.requestSingleInstanceLock.mockReturnValue(true);
     vi.clearAllMocks();
   });
 
@@ -93,6 +99,14 @@ describe('Electron Main Process', () => {
       const result = initializeApp();
       expect(result).toBe(false);
       expect(mockElectron.app.quit).toHaveBeenCalled();
+    });
+  });
+
+  describe('IPC Setup', () => {
+    it('should register IPC handlers on initializeApp', async () => {
+      initializeApp();
+      await Promise.resolve();
+      expect(mockElectron.ipcMain.handle).toHaveBeenCalledWith('ping', expect.any(Function));
     });
   });
 });
