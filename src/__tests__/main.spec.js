@@ -33,6 +33,7 @@ const mockElectron = {
     on: vi.fn(),
     quit: vi.fn(),
     requestSingleInstanceLock: vi.fn().mockReturnValue(true),
+    getPath: vi.fn().mockReturnValue('mock-path'),
   },
   BrowserWindow: class MockBrowserWindow {
     constructor(options) {
@@ -48,6 +49,17 @@ const mockElectron = {
   ipcMain: {
     handle: vi.fn(),
     removeHandler: vi.fn(),
+  },
+  protocol: {
+    registerSchemesAsPrivileged: vi.fn(),
+    handle: vi.fn(),
+  },
+  Menu: {
+    buildFromTemplate: vi.fn().mockReturnValue({}),
+    setApplicationMenu: vi.fn(),
+  },
+  net: {
+    fetch: vi.fn(),
   },
 };
 mockElectron.BrowserWindow.lastInstance = null;

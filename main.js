@@ -1,6 +1,13 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, protocol, net } = require('electron');
 const path = require('path');
+const fs = require('fs');
+const { pathToFileURL } = require('url');
 const log = require('./src/utils/logger');
+
+// Register media protocol as privileged (must be before app ready)
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'media', privileges: { bypassCSP: true, secure: true, supportFetchAPI: true } },
+]);
 
 const DatabaseController = require('./src/controllers/DatabaseController');
 
@@ -8,6 +15,8 @@ const bindHandlers = require('./src/ipc/binder');
 const categoryHandlers = require('./src/ipc/categoryHandlers');
 const productHandlers = require('./src/ipc/productHandlers');
 const tvaHandlers = require('./src/ipc/tvaHandlers');
+const imageHandlers = require('./src/ipc/imageHandlers');
+const MenuService = require('./src/services/MenuService');
 
 // Global error nets for main process
 process.on('uncaughtException', (error) => {
@@ -31,6 +40,9 @@ function createWindow() {
       nodeIntegration: false,
     },
   });
+
+  // Build the app menu
+  MenuService.setAppMenu(mainWindow);
 
   const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
   if (isDev) {
@@ -81,8 +93,22 @@ function initializeApp() {
     // Initialize Database
     DatabaseController.start();
 
+    // Register media protocol
+    protocol.handle('media', (request) => {
+      const url = request.url.slice('media://'.length);
+      const decodedPath = decodeURIComponent(url);
+      const filePath = path.join(app.getPath('userData'), 'product-images', decodedPath);
+      return net.fetch(pathToFileURL(filePath).toString());
+    });
+
+    // Ensure the folder exists
+    const imagesDir = path.join(app.getPath('userData'), 'product-images');
+    if (!fs.existsSync(imagesDir)) {
+      fs.mkdirSync(imagesDir, { recursive: true });
+    }
+
     // Register IPC handlers
-    bindHandlers(ipcMain, [categoryHandlers, productHandlers, tvaHandlers]);
+    bindHandlers(ipcMain, [categoryHandlers, productHandlers, tvaHandlers, imageHandlers]);
 
     createWindow();
 
