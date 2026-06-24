@@ -28,16 +28,29 @@ describe('Preload Script', () => {
     expect(contextBridge.exposeInMainWorld).toHaveBeenCalledWith('electronAPI', expect.any(Object));
   });
 
-  it('electronAPI.ping should invoke the ping IPC channel', async () => {
-    // Get the exposed api object passed to exposeInMainWorld
+  it('electronAPI db helper methods should invoke their respective IPC channels', async () => {
     const apiObject = contextBridge.exposeInMainWorld.mock.calls.find(
       (call) => call[0] === 'electronAPI'
     )[1];
-    expect(apiObject.ping).toBeDefined();
 
-    const result = await apiObject.ping();
-    expect(ipcRenderer.invoke).toHaveBeenCalledWith('ping');
-    expect(result).toBe('pong');
+    expect(apiObject.getCategories).toBeDefined();
+    expect(apiObject.getProducts).toBeDefined();
+    expect(apiObject.getTvaRates).toBeDefined();
+
+    ipcRenderer.invoke.mockResolvedValueOnce([{ id: 1, name: 'Epicerie' }]);
+    const cats = await apiObject.getCategories();
+    expect(ipcRenderer.invoke).toHaveBeenLastCalledWith('get-categories');
+    expect(cats).toEqual([{ id: 1, name: 'Epicerie' }]);
+
+    ipcRenderer.invoke.mockResolvedValueOnce([{ id: 1, name: 'Product A' }]);
+    const prods = await apiObject.getProducts();
+    expect(ipcRenderer.invoke).toHaveBeenLastCalledWith('get-products');
+    expect(prods).toEqual([{ id: 1, name: 'Product A' }]);
+
+    ipcRenderer.invoke.mockResolvedValueOnce([{ id: 1, rate: 20.0 }]);
+    const tva = await apiObject.getTvaRates();
+    expect(ipcRenderer.invoke).toHaveBeenLastCalledWith('get-tva-rates');
+    expect(tva).toEqual([{ id: 1, rate: 20.0 }]);
   });
 
   it('should set version text on DOMContentLoaded', () => {

@@ -12,5 +12,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  ping: () => ipcRenderer.invoke('ping'),
+  getCategories: () => ipcRenderer.invoke('get-categories'),
+  getProducts: () => ipcRenderer.invoke('get-products'),
+  getTvaRates: () => ipcRenderer.invoke('get-tva-rates'),
 });

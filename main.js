@@ -4,6 +4,11 @@ const log = require('./src/utils/logger');
 
 const DatabaseController = require('./src/controllers/DatabaseController');
 
+const bindHandlers = require('./src/ipc/binder');
+const categoryHandlers = require('./src/ipc/categoryHandlers');
+const productHandlers = require('./src/ipc/productHandlers');
+const tvaHandlers = require('./src/ipc/tvaHandlers');
+
 // Global error nets for main process
 process.on('uncaughtException', (error) => {
   log.error('Uncaught Exception in Main Process:', error);
@@ -31,6 +36,7 @@ function createWindow() {
   if (isDev) {
     log.info('Loading dev server URL: http://localhost:5173');
     mainWindow.loadURL('http://localhost:5173');
+    mainWindow.webContents.openDevTools();
   } else {
     log.info('Loading production file: dist/index.html');
     mainWindow.loadFile(path.join(__dirname, 'dist/index.html'));
@@ -76,7 +82,7 @@ function initializeApp() {
     DatabaseController.start();
 
     // Register IPC handlers
-    ipcMain.handle('ping', () => 'pong');
+    bindHandlers(ipcMain, [categoryHandlers, productHandlers, tvaHandlers]);
 
     createWindow();
 
