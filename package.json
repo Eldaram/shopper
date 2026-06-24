@@ -11,13 +11,16 @@
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
     "test": "vitest run",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "build:electron": "npm run build && electron-builder",
+    "build:electron:dir": "npm run build && electron-builder --dir"
   },
   "keywords": [],
   "author": "Dragan Ribes",
   "license": "ISC",
   "dependencies": {
     "better-sqlite3": "^12.11.1",
+    "electron-log": "^5.4.4",
     "vue": "^3.4.27"
   },
   "devDependencies": {
@@ -25,10 +28,41 @@
     "@vue/test-utils": "^2.4.6",
     "concurrently": "^8.2.2",
     "electron": "^30.0.9",
+    "electron-builder": "^26.15.3",
     "happy-dom": "^14.12.0",
     "prettier": "^3.3.2",
     "vite": "^5.2.11",
     "vitest": "^1.6.0",
     "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.dragan.shopper",
+    "productName": "Shopper",
+    "directories": {
+      "output": "dist_electron"
+    },
+    "files": [
+      "dist/**/*",
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ]
+    },
+    "asar": true
   }
 }

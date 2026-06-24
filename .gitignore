@@ -29,6 +29,7 @@ jspm_packages/
 # Output directory
 dist/
 dist-electron/
+dist_electron/
 
 # IDEs and editors
 .idea/

@@ -3,6 +3,28 @@ globalThis.vi = vi;
 import path from 'path';
 import Module from 'module';
 
+// Mock electron-log to prevent test output clutter and log errors in test mode
+const mockLogger = {
+  error: vi.fn(),
+  warn: vi.fn(),
+  info: vi.fn(),
+  debug: vi.fn(),
+  transports: {
+    file: { level: 'debug', resolvePathFn: vi.fn() },
+    console: { level: 'debug' },
+  },
+};
+vi.mock('electron-log', () => {
+  return {
+    default: mockLogger,
+    error: mockLogger.error,
+    warn: mockLogger.warn,
+    info: mockLogger.info,
+    debug: mockLogger.debug,
+    transports: mockLogger.transports,
+  };
+});
+
 // Hijack Node's require to intercept 'electron' imports in CommonJS
 const mockElectron = {
   app: {
@@ -35,6 +57,9 @@ Module.prototype.require = function (id) {
   if (id === 'electron') {
     return mockElectron;
   }
+  if (id === 'electron-log' || id.includes('logger')) {
+    return mockLogger;
+  }
   return originalRequire.apply(this, arguments);
 };
 
@@ -46,6 +71,10 @@ describe('Electron Main Process', () => {
     mockElectron.BrowserWindow.lastInstance = null;
     mockElectron.app.isPackaged = false;
     mockElectron.app.requestSingleInstanceLock.mockReturnValue(true);
+    mockLogger.error.mockClear();
+    mockLogger.warn.mockClear();
+    mockLogger.info.mockClear();
+    mockLogger.debug.mockClear();
     vi.clearAllMocks();
   });
 
@@ -99,6 +128,56 @@ describe('Electron Main Process', () => {
       const result = initializeApp();
       expect(result).toBe(false);
       expect(mockElectron.app.quit).toHaveBeenCalled();
+    });
+  });
+
+  describe('Global Error Nets', () => {
+    it('should register process exception and rejection handlers', () => {
+      const uncaughtListeners = process.listeners('uncaughtException');
+      const unhandledListeners = process.listeners('unhandledRejection');
+      expect(uncaughtListeners.length).toBeGreaterThan(0);
+      expect(unhandledListeners.length).toBeGreaterThan(0);
+    });
+
+    it('should register app crash handlers on initializeApp', () => {
+      initializeApp();
+      expect(mockElectron.app.on).toHaveBeenCalledWith('render-process-gone', expect.any(Function));
+      expect(mockElectron.app.on).toHaveBeenCalledWith('child-process-gone', expect.any(Function));
+    });
+
+    it('should log render-process-gone details when triggered', () => {
+      initializeApp();
+      const renderGoneHandler = mockElectron.app.on.mock.calls.find(
+        (call) => call[0] === 'render-process-gone'
+      )[1];
+      expect(renderGoneHandler).toBeDefined();
+
+      const mockWebContents = { id: 101 };
+      const mockDetails = { reason: 'crashed', exitCode: 139 };
+
+      renderGoneHandler({}, mockWebContents, mockDetails);
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Render process gone. WebContents ID: 101. Reason: crashed, Exit Code: 139'
+        )
+      );
+    });
+
+    it('should log child-process-gone details when triggered', () => {
+      initializeApp();
+      const childGoneHandler = mockElectron.app.on.mock.calls.find(
+        (call) => call[0] === 'child-process-gone'
+      )[1];
+      expect(childGoneHandler).toBeDefined();
+
+      const mockDetails = { reason: 'killed', exitCode: 1, name: 'gpu-process' };
+
+      childGoneHandler({}, mockDetails);
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Child process gone. Reason: killed, Exit Code: 1, Name: gpu-process'
+        )
+      );
     });
   });
 

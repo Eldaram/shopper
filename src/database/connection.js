@@ -1,6 +1,7 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
+const log = require('../utils/logger');
 
 let dbInstance = null;
 let currentDbPath = null;
@@ -22,7 +23,7 @@ function initialize(dbPath = null) {
       const electron = require('electron');
       app = electron.app;
     } catch (e) {
-      // Fallback if electron module isn't available
+      log.warn('Electron module not available in database connection. Using fallback path.');
     }
 
     if (app && typeof app.getPath === 'function') {
@@ -33,6 +34,7 @@ function initialize(dbPath = null) {
         }
         dbPath = path.join(userDataPath, 'shopper.sqlite');
       } catch (err) {
+        log.error('Failed to get userData path, falling back to CWD database:', err);
         dbPath = path.join(process.cwd(), 'database.sqlite');
       }
     } else {
@@ -42,21 +44,33 @@ function initialize(dbPath = null) {
   }
 
   currentDbPath = dbPath;
+  log.info(`Initializing SQLite database at: ${dbPath}`);
 
   if (dbPath !== ':memory:') {
     const dir = path.dirname(dbPath);
     if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+      try {
+        fs.mkdirSync(dir, { recursive: true });
+      } catch (err) {
+        log.error(`Failed to create database directory ${dir}:`, err);
+      }
     }
   }
 
-  dbInstance = new Database(dbPath);
+  try {
+    dbInstance = new Database(dbPath);
 
-  // Enable foreign keys
-  dbInstance.pragma('foreign_keys = ON');
+    // Enable foreign keys
+    dbInstance.pragma('foreign_keys = ON');
 
-  // Enable Write-Ahead Log (WAL) for concurrency & performance
-  dbInstance.pragma('journal_mode = WAL');
+    // Enable Write-Ahead Log (WAL) for concurrency & performance
+    dbInstance.pragma('journal_mode = WAL');
+
+    log.info('Database initialized successfully with WAL enabled.');
+  } catch (err) {
+    log.error(`Failed to initialize SQLite database at ${dbPath}:`, err);
+    throw err;
+  }
 
   return dbInstance;
 }
@@ -67,7 +81,9 @@ function initialize(dbPath = null) {
  */
 function getDb() {
   if (!dbInstance) {
-    throw new Error('Database has not been initialized. Call initialize() first.');
+    const err = new Error('Database has not been initialized. Call initialize() first.');
+    log.error(err.message);
+    throw err;
   }
   return dbInstance;
 }
@@ -77,6 +93,7 @@ function getDb() {
  */
 function close() {
   if (dbInstance) {
+    log.info(`Closing SQLite database connection for path: ${currentDbPath}`);
     dbInstance.close();
     dbInstance = null;
     currentDbPath = null;

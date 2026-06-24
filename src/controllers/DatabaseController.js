@@ -1,6 +1,7 @@
 const connection = require('../database/connection');
 const migrations = require('../database/migrations');
 const seeder = require('../database/seeder');
+const log = require('../utils/logger');
 
 class DatabaseController {
   /**
@@ -10,10 +11,18 @@ class DatabaseController {
    * @returns {Database} The active database instance.
    */
   start(dbPath = null, forceSeed = false) {
+    log.info(`DatabaseController: Starting database initialization (forceSeed: ${forceSeed})`);
     const db = connection.initialize(dbPath);
 
     // Apply any outstanding migrations
-    migrations.runMigrations(db);
+    log.info('DatabaseController: Running database migrations...');
+    try {
+      migrations.runMigrations(db);
+      log.info('DatabaseController: Migrations run successfully.');
+    } catch (err) {
+      log.error('DatabaseController: Failed to run migrations:', err);
+      throw err;
+    }
 
     // Seed database if empty and in development/test, or if forceSeed is true
     const isDevOrTest =
@@ -22,9 +31,17 @@ class DatabaseController {
       typeof process.env.NODE_ENV === 'undefined'; // default fallback
 
     const empty = seeder.isEmpty(db);
+    log.debug(`DatabaseController: Seeder check (empty: ${empty}, isDevOrTest: ${isDevOrTest})`);
 
     if (forceSeed || (isDevOrTest && empty)) {
-      seeder.seed(db);
+      log.info('DatabaseController: Seeding database...');
+      try {
+        seeder.seed(db);
+        log.info('DatabaseController: Database seeded successfully.');
+      } catch (err) {
+        log.error('DatabaseController: Seeding failed:', err);
+        throw err;
+      }
     }
 
     return db;
@@ -34,6 +51,7 @@ class DatabaseController {
    * Shuts down and closes the database connection.
    */
   shutdown() {
+    log.info('DatabaseController: Shutting down database connection...');
     connection.close();
   }
 }
