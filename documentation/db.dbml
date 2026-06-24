@@ -1,0 +1,90 @@
+// ==========================================
+// CŒUR DU LOGICIEL (Fonctionnalités de base)
+// ==========================================
+
+Table TVA {
+  id int [pk, increment]
+  name varchar [not null, note: "Ex: Taux normal, Taux réduit"]
+  rate decimal [not null, note: "Pourcentage de la TVA, ex: 20.0, 5.5"]
+  is_active boolean [default: true, note: "True pour utilisé/affiché, False pour masqué (gestion soft delete)"]
+}
+
+Table Product {
+  id int [pk, increment]
+  barcode varchar [unique, note: "Code-barres, null si produit sans code"]
+  name varchar [not null]
+  price_ht decimal [not null, note: "Prix unitaire Hors Taxes"]
+  price_ttc decimal [not null, note: "Prix unitaire Toutes Taxes Comprises"]
+  tva_id int [ref: > TVA.id, note: "Référence à la taxe appliquée"]
+  is_openfoodfacts boolean [default: false]
+  category_id int [ref: > Category.id, note: "Un produit appartient à une seule catégorie"]
+  type_id int [ref: > Type.id, null, note: "Type OpenFoodFacts (optionnel)"]
+  image_path varchar [null, note: "Chemin de l'image locale importée par l'utilisateur"]
+  image_url_openfoodfacts varchar [null, note: "URL de l'image sur OpenFoodFacts"]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  deleted_at timestamp [null, note: "Safe delete / Soft delete pour ne pas casser l'historique des ventes"]
+}
+
+Table Category {
+  id int [pk, increment]
+  name varchar [not null]
+  parent_id int [ref: > Category.id, null, note: "Lien interne récursif pour gérer les sous-catégories"]
+  image_path varchar [null, note: "Chemin de l'image locale de la catégorie"]
+}
+
+Table Type {
+  id int [pk, increment]
+  name varchar [not null, note: "Contient les types issus d'OpenFoodFacts"]
+}
+
+Table Ticket {
+  id int [pk, increment]
+  created_at timestamp [default: `now()`]
+  total_amount_ht decimal [not null, note: "Total HT calculé de la note"]
+  total_amount_ttc decimal [not null, note: "Total TTC calculé de la note"]
+  customer_id int [ref: > Customer.id, null, note: "Lien optionnel vers un client"]
+}
+
+Table TicketLine {
+  id int [pk, increment]
+  ticket_id int [ref: > Ticket.id]
+  product_id int [ref: > Product.id]
+  quantity int [not null, default: 1]
+  
+  // Historisation des prix et taxes AVANT réduction
+  original_unit_price_ht decimal [not null]
+  original_unit_price_ttc decimal [not null]
+  applied_tva_rate decimal [not null, note: "Taux de TVA figé au moment de la vente"]
+  
+  // Gestion de la réduction appliquée sur la ligne
+  is_discount_percentage boolean [default: false, note: "True si réduction en %, False si montant fixe en €"]
+  discount_value decimal [null, note: "La valeur de la réduction (ex: 10 pour 10%, ou 2.50 pour 2,50€)"]
+  
+  // Prix finaux historisés APRÈS réduction
+  final_unit_price_ht decimal [not null, note: "Recalculé après réduction"]
+  final_unit_price_ttc decimal [not null, note: "Prix de vente réel final TTC"]
+}
+
+Table Customer {
+  id int [pk, increment]
+  name varchar [not null]
+  phone varchar
+  loyalty_points int [default: 0]
+  created_at timestamp [default: `now()`]
+  edited_at timestamp [default: `now()`]
+  deleted_at timestamp [null, note: "Safe delete pour l'historique client"]
+}
+
+// ==========================================
+// MODULES OPTIONNELS
+// ==========================================
+
+Table DeliveryOrder {
+  id int [pk, increment]
+  ticket_id int [unique, ref: - Ticket.id]
+  status varchar [default: 'a_preparer', note: "États : a_preparer, en_cours, livree"]
+  delivery_address text
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+}

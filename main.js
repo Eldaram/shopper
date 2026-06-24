@@ -1,6 +1,8 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 
+const DatabaseController = require('./src/controllers/DatabaseController');
+
 let mainWindow;
 
 function createWindow() {
@@ -39,6 +41,9 @@ function initializeApp() {
   });
 
   app.whenReady().then(() => {
+    // Initialize Database
+    DatabaseController.start();
+
     // Register IPC handlers
     ipcMain.handle('ping', () => 'pong');
 
@@ -52,6 +57,7 @@ function initializeApp() {
   });
 
   app.on('window-all-closed', () => {
+    DatabaseController.shutdown();
     if (process.platform !== 'darwin') {
       app.quit();
     }

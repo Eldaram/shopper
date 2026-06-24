@@ -17,6 +17,7 @@
   "author": "Dragan Ribes",
   "license": "ISC",
   "dependencies": {
+    "better-sqlite3": "^12.11.1",
     "vue": "^3.4.27"
   },
   "devDependencies": {
