@@ -67,6 +67,11 @@ const TRANSLATION_KEYS = [
   'clear_basket_msg',
   'clear_basket_confirm',
   'sale_validated_msg',
+  'delete_category_title',
+  'delete_category_msg',
+  'delete_category_detail',
+  'menu_delete_category',
+  'delete_category',
 ];
 
 // Fallback dictionary for testing and browser mock environments
@@ -140,6 +145,12 @@ const FALLBACK_TRANSLATIONS = {
     clear_basket_msg: 'Voulez vous vraiment vider tout le panier ?',
     clear_basket_confirm: 'Vider le panier',
     sale_validated_msg: "Vente validée d'un montant de {amount} !",
+    delete_category_title: 'Suppression de catégorie',
+    delete_category_msg: 'Voulez-vous vraiment supprimer la catégorie "{categoryName}" ?',
+    delete_category_detail:
+      'Aucun article ne sera supprimé. Tous les articles de cette catégorie seront déplacés vers la catégorie parente.',
+    menu_delete_category: 'Supprimer la catégorie',
+    delete_category: 'Supprimer la catégorie',
   },
   en: {
     categories: 'Categories',
@@ -209,6 +220,12 @@ const FALLBACK_TRANSLATIONS = {
     clear_basket_msg: 'Are you sure you want to empty the entire basket?',
     clear_basket_confirm: 'Clear basket',
     sale_validated_msg: 'Sale validated for an amount of {amount}!',
+    delete_category_title: 'Delete Category',
+    delete_category_msg: 'Are you sure you want to delete category "{categoryName}"?',
+    delete_category_detail:
+      'No items will be deleted. All products in this category will be moved to the parent category.',
+    menu_delete_category: 'Delete Category',
+    delete_category: 'Delete category',
   },
 };
 

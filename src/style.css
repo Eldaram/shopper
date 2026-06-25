@@ -691,6 +691,15 @@ body {
   font-size: 16px;
 }
 
+.context-menu-item--danger {
+  color: var(--text-secondary);
+}
+
+.context-menu-item--danger:hover {
+  background-color: #c0392b;
+  color: #fff;
+}
+
 /* Active buttons in ProductDetail */
 .active-btn {
   cursor: pointer !important;

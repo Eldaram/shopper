@@ -119,8 +119,8 @@ function initializeApp() {
       translationHandlers,
     ]);
 
-    ipcMain.on('set-delete-menu-enabled', (event, enabled) => {
-      MenuService.setDeleteProductEnabled(enabled);
+    ipcMain.on('set-delete-item-state', (event, enabled, label) => {
+      MenuService.setDeleteItemState(enabled, label);
     });
 
     ipcMain.on('set-clear-basket-enabled', (event, enabled) => {

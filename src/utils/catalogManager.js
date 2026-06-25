@@ -71,4 +71,37 @@ export default {
       }
     }
   },
+
+  async deleteCategory(category) {
+    if (!category) return;
+
+    let confirmed = false;
+    if (window.electronAPI && typeof window.electronAPI.confirmDeleteCategory === 'function') {
+      confirmed = await window.electronAPI.confirmDeleteCategory(category.name);
+    } else {
+      confirmed = window.confirm(
+        `Voulez-vous vraiment supprimer la catégorie "${category.name}" ?\n\nAucun article ne sera supprimé, ils seront déplacés vers la catégorie parente.`
+      );
+    }
+
+    if (confirmed) {
+      try {
+        if (window.electronAPI && typeof window.electronAPI.deleteCategory === 'function') {
+          await window.electronAPI.deleteCategory(category.id);
+        } else {
+          console.log('Mock: Category deleted', category.id);
+          const idx = this.categories.findIndex((c) => c.id === category.id);
+          if (idx !== -1) this.categories.splice(idx, 1);
+        }
+        // If the user was viewing the deleted category, navigate to its parent
+        if (this.selectedCategoryId === category.id) {
+          this.selectedCategoryId = category.parent_id ?? null;
+        }
+        await this.fetchData();
+      } catch (err) {
+        console.error('Error deleting category:', err);
+        alert(`Erreur lors de la suppression: ${err.message}`);
+      }
+    }
+  },
 };

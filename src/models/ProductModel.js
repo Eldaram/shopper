@@ -31,7 +31,7 @@ class ProductModel extends BaseModel {
         tp.name AS type_name
       FROM Product p
       INNER JOIN TVA t ON p.tva_id = t.id
-      INNER JOIN Category c ON p.category_id = c.id
+      LEFT JOIN Category c ON p.category_id = c.id
       LEFT JOIN Type tp ON p.type_id = tp.id
       WHERE p.deleted_at IS NULL
     `);
@@ -189,6 +189,21 @@ class ProductModel extends BaseModel {
       [id]
     );
     return result.changes > 0;
+  }
+
+  /**
+   * Moves all non-deleted products from one category to another (or to null).
+   * Used when a category is deleted to reparent its direct products.
+   * @param {number} oldCategoryId
+   * @param {number|null} newCategoryId
+   * @returns {number} Number of products updated.
+   */
+  reparentByCategory(oldCategoryId, newCategoryId) {
+    const result = this.run(
+      'UPDATE Product SET category_id = ? WHERE category_id = ? AND deleted_at IS NULL',
+      [newCategoryId, oldCategoryId]
+    );
+    return result.changes;
   }
 
   /**

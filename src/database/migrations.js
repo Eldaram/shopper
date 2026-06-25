@@ -128,6 +128,41 @@ const migrations = [
       ).run();
     },
   },
+  {
+    name: '002_nullable_product_category',
+    up: (db) => {
+      // SQLite does not support DROP NOT NULL directly, so we recreate the table.
+      // Note: PRAGMA foreign_keys = OFF is set by the runner OUTSIDE the transaction
+      // because SQLite ignores pragma changes made inside a transaction.
+      db.prepare(
+        `
+        CREATE TABLE IF NOT EXISTS Product_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          barcode TEXT UNIQUE NULL,
+          name TEXT NOT NULL,
+          price_ht REAL NOT NULL,
+          price_ttc REAL NOT NULL,
+          tva_id INTEGER NOT NULL,
+          is_openfoodfacts INTEGER DEFAULT 0,
+          category_id INTEGER NULL,
+          type_id INTEGER NULL,
+          image_path TEXT NULL,
+          image_url_openfoodfacts TEXT NULL,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          deleted_at TEXT NULL,
+          FOREIGN KEY (tva_id) REFERENCES TVA (id),
+          FOREIGN KEY (category_id) REFERENCES Category (id),
+          FOREIGN KEY (type_id) REFERENCES Type (id) ON DELETE SET NULL
+        )
+      `
+      ).run();
+
+      db.prepare(`INSERT INTO Product_new SELECT * FROM Product`).run();
+      db.prepare('DROP TABLE Product').run();
+      db.prepare('ALTER TABLE Product_new RENAME TO Product').run();
+    },
+  },
 ];
 
 /**
@@ -151,11 +186,18 @@ function runMigrations(db) {
 
   for (const migration of migrations) {
     if (!appliedNames.includes(migration.name)) {
-      const transaction = db.transaction(() => {
-        migration.up(db);
-        db.prepare('INSERT INTO _migrations (name) VALUES (?)').run(migration.name);
-      });
-      transaction();
+      // Disable FK constraints outside the transaction so the PRAGMA actually takes effect.
+      // (SQLite silently ignores PRAGMA changes made inside a transaction.)
+      db.pragma('foreign_keys = OFF');
+      try {
+        const transaction = db.transaction(() => {
+          migration.up(db);
+          db.prepare('INSERT INTO _migrations (name) VALUES (?)').run(migration.name);
+        });
+        transaction();
+      } finally {
+        db.pragma('foreign_keys = ON');
+      }
     }
   }
 }
