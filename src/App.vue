@@ -26,6 +26,9 @@
           <!-- Search Bar (Visible only when not viewing product details, creation, or basket) -->
           <SearchBar v-if="!focusedProduct && !isCreatingProduct && !basketState.isViewing" />
 
+          <!-- Language Selector -->
+          <LanguageSelector />
+
           <!-- Basket Button: Accessible at all times -->
           <BasketHeaderButton @click="handleToggleBasket" />
         </div>
@@ -94,6 +97,7 @@ import CatalogueView from './components/CatalogueView.vue';
 import SearchBar from './components/SearchBar.vue';
 import BasketHeaderButton from './components/BasketHeaderButton.vue';
 import ContextMenu from './components/ContextMenu.vue';
+import LanguageSelector from './components/LanguageSelector.vue';
 import { loadBrowserMocks as getBrowserMocks } from './utils/mockData';
 import { basketState, confirmAndClearBasket } from './utils/basketStore';
 import catalogMethods from './utils/catalogManager';
@@ -109,6 +113,7 @@ export default {
     SearchBar,
     BasketHeaderButton,
     ContextMenu,
+    LanguageSelector,
   },
   data() {
     return {
@@ -234,9 +239,7 @@ export default {
       ) {
         choice = await window.electronAPI.showExitConfirmationDialog();
       } else {
-        const res = window.confirm(
-          'Vous avez des modifications non enregistrées. Voulez-vous abandonner vos modifications ?'
-        );
+        const res = window.confirm(this.$t('unsaved_changes_msg'));
         choice = res ? 0 : 1; // 0 = Abandonner, 1 = Rester
       }
 

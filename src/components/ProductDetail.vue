@@ -1,7 +1,9 @@
 <template>
   <div class="detail-container">
     <div class="detail-header">
-      <button class="btn-back" @click="handleCancel"><span>←</span> Retour au catalogue</button>
+      <button class="btn-back" @click="handleCancel">
+        <span>←</span> {{ $t('back_to_catalogue') }}
+      </button>
       <span class="detail-badge-mode">{{ activeState ? activeState.getBadgeText() : '' }}</span>
     </div>
 
@@ -22,14 +24,14 @@
           v-if="activeState && activeState.showDeleteImageButton() && imageUrl"
           class="btn-delete-img"
           @click.stop="handleRemoveImage"
-          title="Supprimer l'image"
+          :title="$t('delete')"
         >
           <span>🗑️</span>
         </button>
         <img
           v-if="imageUrl && !imageLoadError"
           :src="imageUrl"
-          :alt="localProduct.name || 'Produit'"
+          :alt="localProduct.name || $t('product')"
           class="detail-large-img"
           @error="handleImageError"
         />
@@ -37,9 +39,9 @@
           <template v-if="activeState && !activeState.isViewMode()">
             <span class="upload-icon">📷</span>
             <span class="upload-text"
-              >Choisir une image<br /><span style="font-size: 11px; opacity: 0.7"
-                >(ou glisser-déposer)</span
-              ></span
+              >{{ $t('choose_image') }}<br /><span style="font-size: 11px; opacity: 0.7">{{
+                $t('or_drag_drop')
+              }}</span></span
             >
           </template>
           <template v-else>
@@ -55,7 +57,7 @@
 
         <form class="form-grid" @submit.prevent="handleSubmit">
           <div class="form-group form-field-full">
-            <label class="form-label">Nom de l'article</label>
+            <label class="form-label">{{ $t('item_name') }}</label>
             <input
               type="text"
               v-model="localProduct.name"
@@ -67,7 +69,7 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">Code-barres (EAN)</label>
+            <label class="form-label">{{ $t('barcode_ean') }}</label>
             <input
               type="text"
               v-model="localProduct.barcode"
@@ -78,14 +80,14 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">Catégorie</label>
+            <label class="form-label">{{ $t('category') }}</label>
             <select
               v-model="localProduct.category_id"
               class="form-input"
               :disabled="!activeState || !activeState.isEditable()"
               required
             >
-              <option :value="null" disabled>Choisir une catégorie</option>
+              <option :value="null" disabled>{{ $t('choose_category') }}</option>
               <option v-for="opt in categoryTreeOptions" :key="opt.id" :value="opt.id">
                 {{ getCategoryDisplayName(opt) }}
               </option>
@@ -93,7 +95,7 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">Prix HT (€)</label>
+            <label class="form-label">{{ $t('price_ht') }}</label>
             <input
               type="text"
               v-model="localProduct.price_ht"
@@ -106,7 +108,7 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">Prix TTC (€)</label>
+            <label class="form-label">{{ $t('price_ttc') }}</label>
             <input
               type="text"
               v-model="localProduct.price_ttc"
@@ -119,7 +121,7 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">Taux TVA</label>
+            <label class="form-label">{{ $t('tva_rate') }}</label>
             <select
               v-model="localProduct.tva_id"
               @change="onTvaChange"
@@ -134,15 +136,15 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">Origine des données</label>
+            <label class="form-label">{{ $t('data_origin') }}</label>
             <input
               type="text"
               :value="
                 activeState && activeState.isCreateMode()
-                  ? 'Import Local'
+                  ? $t('local_import')
                   : product && product.is_openfoodfacts
-                    ? 'Open Food Facts'
-                    : 'Import Local'
+                    ? $t('open_food_facts')
+                    : $t('local_import')
               "
               class="form-input"
               disabled
@@ -153,7 +155,7 @@
             v-if="activeState && !activeState.isCreateMode() && product && product.updated_at"
             class="form-group"
           >
-            <label class="form-label">Dernière modification</label>
+            <label class="form-label">{{ $t('last_modified') }}</label>
             <input
               type="text"
               :value="formatDate(product.updated_at)"
@@ -166,23 +168,30 @@
         <div class="detail-actions">
           <!-- View mode buttons -->
           <template v-if="activeState && activeState.isViewMode()">
-            <BaseButton variant="success" @click="addToBasket(product)"
-              >Ajouter au panier</BaseButton
-            >
-            <BaseButton variant="secondary" @click="activeState.handleEdit()">Modifier</BaseButton>
-            <BaseButton variant="danger" @click="$emit('delete')">Supprimer</BaseButton>
-            <BaseButton variant="primary" :disabled="true">Enregistrer</BaseButton>
+            <BaseButton variant="success" @click="addToBasket(product)">{{
+              $t('add_to_basket')
+            }}</BaseButton>
+            <BaseButton variant="secondary" @click="activeState.handleEdit()">{{
+              $t('edit')
+            }}</BaseButton>
+            <BaseButton variant="danger" @click="$emit('delete')">{{ $t('delete') }}</BaseButton>
+            <BaseButton variant="primary" :disabled="true">{{ $t('save') }}</BaseButton>
           </template>
 
           <!-- Edit/Create mode buttons -->
           <template v-else-if="activeState">
-            <BaseButton variant="secondary" @click="activeState.handleCancel()">Annuler</BaseButton>
-            <BaseButton v-if="!activeState.isCreateMode()" variant="danger" @click="$emit('delete')"
-              >Supprimer</BaseButton
+            <BaseButton variant="secondary" @click="activeState.handleCancel()">{{
+              $t('cancel')
+            }}</BaseButton>
+            <BaseButton
+              v-if="!activeState.isCreateMode()"
+              variant="danger"
+              @click="$emit('delete')"
+              >{{ $t('delete') }}</BaseButton
             >
-            <BaseButton variant="primary" @click="activeState.handleSubmit()"
-              >Enregistrer</BaseButton
-            >
+            <BaseButton variant="primary" @click="activeState.handleSubmit()">{{
+              $t('save')
+            }}</BaseButton>
           </template>
         </div>
       </div>
@@ -233,10 +242,10 @@ class ViewState extends ProductDetailState {
     return true;
   }
   getBadgeText() {
-    return '🔍 Consultation';
+    return this.vm.$t('view_mode');
   }
   getTitle() {
-    return 'Détails du Produit';
+    return this.vm.$t('product_details');
   }
 
   handleEdit() {
@@ -262,10 +271,10 @@ class EditState extends ProductDetailState {
     return true;
   }
   getBadgeText() {
-    return '✏️ Édition';
+    return this.vm.$t('edit_mode');
   }
   getTitle() {
-    return 'Modifier le produit';
+    return this.vm.$t('edit_product');
   }
 
   async handleCancel() {
@@ -296,10 +305,10 @@ class CreateState extends ProductDetailState {
     return true;
   }
   getBadgeText() {
-    return '➕ Création';
+    return this.vm.$t('create_mode');
   }
   getTitle() {
-    return 'Créer un produit';
+    return this.vm.$t('create_product');
   }
 
   async handleCancel() {
@@ -723,9 +732,7 @@ export default {
       ) {
         choice = await window.electronAPI.showExitConfirmationDialog();
       } else {
-        const res = window.confirm(
-          'Vous avez des modifications non enregistrées. Voulez-vous abandonner vos modifications ?'
-        );
+        const res = window.confirm(this.vm.$t('unsaved_changes_msg'));
         choice = res ? 0 : 1; // 0 = Abandonner, 1 = Rester
       }
       return choice === 0;

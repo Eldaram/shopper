@@ -3,30 +3,36 @@ const { Menu, app } = require('electron');
 class MenuService {
   setAppMenu(window) {
     const isMac = process.platform === 'darwin';
+
+    // Dynamically require TranslationController to prevent circular dependency
+    const TranslationController = require('../controllers/TranslationController');
+    const t = (key) =>
+      TranslationController.getText(TranslationController.getCurrentLanguage(), key);
+
     const template = [
       ...(isMac
         ? [
             {
               label: app.name,
               submenu: [
-                { role: 'about', label: 'À propos' },
+                { role: 'about', label: t('menu_about') },
                 { type: 'separator' },
-                { role: 'services', label: 'Services' },
+                { role: 'services', label: t('menu_services') },
                 { type: 'separator' },
-                { role: 'hide', label: 'Masquer' },
-                { role: 'hideOthers', label: 'Masquer les autres' },
-                { role: 'unhide', label: 'Tout afficher' },
+                { role: 'hide', label: t('menu_hide') },
+                { role: 'hideOthers', label: t('menu_hide_others') },
+                { role: 'unhide', label: t('menu_show_all') },
                 { type: 'separator' },
-                { role: 'quit', label: 'Quitter' },
+                { role: 'quit', label: t('menu_quit') },
               ],
             },
           ]
         : []),
       {
-        label: 'Fichier',
+        label: t('menu_file'),
         submenu: [
           {
-            label: 'Ajouter un item',
+            label: t('menu_add_item'),
             accelerator: 'CmdOrCtrl+N',
             click: () => {
               if (window && !window.isDestroyed()) {
@@ -36,7 +42,7 @@ class MenuService {
           },
           {
             id: 'delete-product-item',
-            label: 'Supprimer le produit',
+            label: t('menu_delete_product'),
             accelerator: 'CmdOrCtrl+D',
             enabled: false,
             click: () => {
@@ -47,7 +53,7 @@ class MenuService {
           },
           {
             id: 'clear-basket-item',
-            label: 'Vider le panier',
+            label: t('menu_clear_basket'),
             accelerator: 'CmdOrCtrl+Shift+Delete',
             enabled: false,
             click: () => {
@@ -57,48 +63,50 @@ class MenuService {
             },
           },
           { type: 'separator' },
-          isMac ? { role: 'close', label: 'Fermer' } : { role: 'quit', label: 'Quitter' },
+          isMac
+            ? { role: 'close', label: t('menu_close') }
+            : { role: 'quit', label: t('menu_quit') },
         ],
       },
       {
-        label: 'Édition',
+        label: t('menu_edit'),
         submenu: [
-          { role: 'undo', label: 'Annuler' },
-          { role: 'redo', label: 'Rétablir' },
+          { role: 'undo', label: t('menu_undo') },
+          { role: 'redo', label: t('menu_redo') },
           { type: 'separator' },
-          { role: 'cut', label: 'Couper' },
-          { role: 'copy', label: 'Copier' },
-          { role: 'paste', label: 'Coller' },
-          { role: 'selectAll', label: 'Tout sélectionner' },
+          { role: 'cut', label: t('menu_cut') },
+          { role: 'copy', label: t('menu_copy') },
+          { role: 'paste', label: t('menu_paste') },
+          { role: 'selectAll', label: t('menu_select_all') },
         ],
       },
       {
-        label: 'Affichage',
+        label: t('menu_view'),
         submenu: [
-          { role: 'reload', label: 'Recharger' },
-          { role: 'forceReload', label: 'Forcer le rechargement' },
-          { role: 'toggleDevTools', label: 'Outils de développement' },
+          { role: 'reload', label: t('menu_reload') },
+          { role: 'forceReload', label: t('menu_force_reload') },
+          { role: 'toggleDevTools', label: t('menu_devtools') },
           { type: 'separator' },
-          { role: 'resetZoom', label: 'Réinitialiser le zoom' },
-          { role: 'zoomIn', label: 'Zoom avant' },
-          { role: 'zoomOut', label: 'Zoom arrière' },
+          { role: 'resetZoom', label: t('menu_reset_zoom') },
+          { role: 'zoomIn', label: t('menu_zoom_in') },
+          { role: 'zoomOut', label: t('menu_zoom_out') },
           { type: 'separator' },
-          { role: 'togglefullscreen', label: 'Plein écran' },
+          { role: 'togglefullscreen', label: t('menu_fullscreen') },
         ],
       },
       {
-        label: 'Fenêtre',
+        label: t('menu_window'),
         submenu: [
-          { role: 'minimize', label: 'Réduire' },
-          { role: 'zoom', label: 'Agrandir' },
+          { role: 'minimize', label: t('menu_minimize') },
+          { role: 'zoom', label: t('menu_zoom') },
           ...(isMac
             ? [
                 { type: 'separator' },
-                { role: 'front', label: 'Tout mettre au premier plan' },
+                { role: 'front', label: t('menu_front') },
                 { type: 'separator' },
-                { role: 'window', label: 'Fenêtre' },
+                { role: 'window', label: t('menu_window') },
               ]
-            : [{ role: 'close', label: 'Fermer' }]),
+            : [{ role: 'close', label: t('menu_close') }]),
         ],
       },
     ];

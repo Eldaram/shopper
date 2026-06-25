@@ -48,7 +48,7 @@ export default {
   },
   computed: {
     path() {
-      const result = [{ name: 'Accueil', type: 'home' }];
+      const result = [{ name: this.$t('all_catalogue'), type: 'home' }];
       if (this.selectedCategoryId !== null) {
         const catPath = [];
         let current = this.categories.find((c) => c.id === this.selectedCategoryId);
@@ -61,11 +61,11 @@ export default {
         result.push(...catPath.reverse());
       }
       if (this.basketState.isViewing) {
-        result.push({ name: 'Panier', type: 'basket' });
+        result.push({ name: this.$t('basket'), type: 'basket' });
       } else if (this.focusedProduct !== null) {
         result.push({ name: this.focusedProduct.name, type: 'product' });
       } else if (this.isCreatingProduct) {
-        result.push({ name: "Création d'un article", type: 'product' });
+        result.push({ name: this.$t('create_product'), type: 'product' });
       }
       return result;
     },

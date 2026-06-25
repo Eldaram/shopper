@@ -9,7 +9,7 @@
     </div>
 
     <div class="sidebar-content">
-      <div class="nav-title">Catégories</div>
+      <div class="nav-title">{{ $t('categories') }}</div>
       <nav>
         <ul class="nav-list">
           <li
@@ -18,7 +18,7 @@
             @click="$emit('select-category', null)"
             @contextmenu.prevent="$emit('contextmenu-category', $event, null)"
           >
-            <span>Tout le catalogue</span>
+            <span>{{ $t('all_catalogue') }}</span>
             <span class="nav-item-count">{{ products.length }}</span>
           </li>
           <li

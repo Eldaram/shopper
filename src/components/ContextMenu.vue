@@ -3,15 +3,15 @@
     <template v-if="targetProduct">
       <div class="context-menu-item" @click="handleDelete">
         <span class="context-menu-icon">🗑️</span>
-        <span>Supprimer l'article</span>
+        <span>{{ $t('delete_item') }}</span>
       </div>
     </template>
     <template v-else>
       <div class="context-menu-item" @click="handleCreate">
         <span class="context-menu-icon">➕</span>
         <span>
-          Ajouter un article
-          {{ targetCategory ? `dans ${targetCategory.name}` : '' }}
+          {{ $t('add_item') }}
+          {{ targetCategory ? ` ${$t('in')} ${targetCategory.name}` : '' }}
         </span>
       </div>
     </template>

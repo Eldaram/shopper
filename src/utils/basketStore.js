@@ -1,4 +1,5 @@
 import { reactive } from 'vue';
+import { i18n } from './i18n';
 
 export const basketState = reactive({
   items: [],
@@ -50,7 +51,7 @@ export async function confirmAndClearBasket() {
   if (window.electronAPI && typeof window.electronAPI.confirmClearBasket === 'function') {
     confirmed = await window.electronAPI.confirmClearBasket();
   } else {
-    confirmed = window.confirm('Voulez vous vraiment vider tout le panier ?');
+    confirmed = window.confirm(i18n.t('clear_basket_msg'));
   }
   if (confirmed) {
     clearBasket();
@@ -58,7 +59,8 @@ export async function confirmAndClearBasket() {
 }
 
 export function handleValidateSale() {
-  const formattedTotal = new Intl.NumberFormat('fr-FR', {
+  const locale = i18n.currentLang.value === 'fr' ? 'fr-FR' : 'en-GB';
+  const formattedTotal = new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: 'EUR',
   }).format(
@@ -68,7 +70,7 @@ export function handleValidateSale() {
       0
     )
   );
-  alert(`Vente validée d'un montant de ${formattedTotal} !`);
+  alert(i18n.t('sale_validated_msg').replace('{amount}', formattedTotal));
   clearBasket();
   basketState.isViewing = false;
 }

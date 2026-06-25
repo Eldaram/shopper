@@ -1,8 +1,13 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mount } from '@vue/test-utils';
+import { mount, config } from '@vue/test-utils';
+import { i18n } from '../utils/i18n';
 import ProductDetail from '../components/ProductDetail.vue';
 import App from '../App.vue';
+
+config.global.mocks = config.global.mocks || {};
+config.global.mocks.$t = (key) => i18n.t(key);
+config.global.mocks.$currentLang = 'fr';
 
 // Mock electron API globally
 const mockElectronAPI = {

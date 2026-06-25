@@ -16,7 +16,7 @@
     <button
       class="add-to-basket-btn"
       @click.stop="$emit('add-to-basket', product)"
-      title="Ajouter au panier"
+      :title="$t('add_to_basket')"
     >
       <span>+</span>
     </button>
@@ -53,8 +53,9 @@ export default {
   },
   methods: {
     formatPrice(price) {
-      if (typeof price !== 'number') return '0,00 €';
-      return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(price);
+      if (typeof price !== 'number') return this.$currentLang === 'fr' ? '0,00 €' : '€0.00';
+      const locale = this.$currentLang === 'fr' ? 'fr-FR' : 'en-GB';
+      return new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(price);
     },
     handleImageError(e) {
       e.target.style.display = 'none';

@@ -3,7 +3,7 @@
     <input
       v-model="searchState.query"
       type="text"
-      placeholder="Rechercher un article..."
+      :placeholder="$t('search_placeholder')"
       class="search-input"
     />
   </div>

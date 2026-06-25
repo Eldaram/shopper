@@ -1,0 +1,402 @@
+{
+  "header": {
+    "languages": [
+      {
+        "code": "fr",
+        "name": "Français",
+        "flag": "🇫🇷"
+      },
+      {
+        "code": "en",
+        "name": "English",
+        "flag": "🇬🇧"
+      }
+    ]
+  },
+  "texts": {
+    "categories": {
+      "fr": "Catégories",
+      "en": "Categories"
+    },
+    "all_catalogue": {
+      "fr": "Tout le catalogue",
+      "en": "All Catalogue"
+    },
+    "search_placeholder": {
+      "fr": "Rechercher un article...",
+      "en": "Search product..."
+    },
+    "basket": {
+      "fr": "Panier",
+      "en": "Basket"
+    },
+    "item": {
+      "fr": "article",
+      "en": "item"
+    },
+    "items": {
+      "fr": "articles",
+      "en": "items"
+    },
+    "clear_basket": {
+      "fr": "Vider le panier",
+      "en": "Clear basket"
+    },
+    "basket_empty_title": {
+      "fr": "Le panier est vide",
+      "en": "Basket is empty"
+    },
+    "basket_empty_desc": {
+      "fr": "Ajoutez des articles depuis le catalogue pour commencer une vente.",
+      "en": "Add items from the catalogue to start a sale."
+    },
+    "back_to_explorer": {
+      "fr": "Retour à l'exploreur des produits",
+      "en": "Back to product explorer"
+    },
+    "image": {
+      "fr": "Image",
+      "en": "Image"
+    },
+    "product": {
+      "fr": "Article",
+      "en": "Product"
+    },
+    "tax": {
+      "fr": "Taxe",
+      "en": "Tax"
+    },
+    "unit_price_ttc": {
+      "fr": "Prix unitaire TTC",
+      "en": "Unit Price (incl. tax)"
+    },
+    "quantity": {
+      "fr": "Quantité",
+      "en": "Quantity"
+    },
+    "total_ttc": {
+      "fr": "Total TTC",
+      "en": "Total (incl. tax)"
+    },
+    "action": {
+      "fr": "Action",
+      "en": "Action"
+    },
+    "num_items": {
+      "fr": "Nombre d'articles :",
+      "en": "Number of items:"
+    },
+    "total_amount_ttc": {
+      "fr": "Montant total (TTC) :",
+      "en": "Total amount (incl. tax):"
+    },
+    "validate_sale": {
+      "fr": "Valider la vente",
+      "en": "Validate sale"
+    },
+    "delete_item": {
+      "fr": "Supprimer l'article",
+      "en": "Delete item"
+    },
+    "add_item": {
+      "fr": "Ajouter un article",
+      "en": "Add item"
+    },
+    "back_to_catalogue": {
+      "fr": "Retour au catalogue",
+      "en": "Back to catalogue"
+    },
+    "view_mode": {
+      "fr": "🔍 Consultation",
+      "en": "🔍 View Mode"
+    },
+    "edit_mode": {
+      "fr": "✏️ Édition",
+      "en": "✏️ Edit Mode"
+    },
+    "create_mode": {
+      "fr": "➕ Création",
+      "en": "➕ Create Mode"
+    },
+    "product_details": {
+      "fr": "Détails du Produit",
+      "en": "Product Details"
+    },
+    "edit_product": {
+      "fr": "Modifier le produit",
+      "en": "Edit product"
+    },
+    "create_product": {
+      "fr": "Créer un produit",
+      "en": "Create product"
+    },
+    "item_name": {
+      "fr": "Nom de l'article",
+      "en": "Item name"
+    },
+    "barcode_ean": {
+      "fr": "Code-barres (EAN)",
+      "en": "Barcode (EAN)"
+    },
+    "category": {
+      "fr": "Catégorie",
+      "en": "Category"
+    },
+    "price_ht": {
+      "fr": "Prix HT (€)",
+      "en": "Price excl. tax (€)"
+    },
+    "price_ttc": {
+      "fr": "Prix TTC (€)",
+      "en": "Price incl. tax (€)"
+    },
+    "tva_rate": {
+      "fr": "Taux TVA",
+      "en": "VAT Rate"
+    },
+    "data_origin": {
+      "fr": "Origine des données",
+      "en": "Data origin"
+    },
+    "last_modified": {
+      "fr": "Dernière modification",
+      "en": "Last modified"
+    },
+    "local_import": {
+      "fr": "Import Local",
+      "en": "Local Import"
+    },
+    "open_food_facts": {
+      "fr": "Open Food Facts",
+      "en": "Open Food Facts"
+    },
+    "add_to_basket": {
+      "fr": "Ajouter au panier",
+      "en": "Add to basket"
+    },
+    "edit": {
+      "fr": "Modifier",
+      "en": "Edit"
+    },
+    "delete": {
+      "fr": "Supprimer",
+      "en": "Delete"
+    },
+    "save": {
+      "fr": "Enregistrer",
+      "en": "Save"
+    },
+    "cancel": {
+      "fr": "Annuler",
+      "en": "Cancel"
+    },
+    "choose_image": {
+      "fr": "Choisir une image",
+      "en": "Choose an image"
+    },
+    "or_drag_drop": {
+      "fr": "(ou glisser-déposer)",
+      "en": "(or drag & drop)"
+    },
+    "choose_category": {
+      "fr": "Choisir une catégorie",
+      "en": "Choose a category"
+    },
+    "main_categories": {
+      "fr": "Rayons principaux",
+      "en": "Main categories"
+    },
+    "subcategories": {
+      "fr": "Sous-catégories",
+      "en": "Subcategories"
+    },
+    "products": {
+      "fr": "Articles",
+      "en": "Products"
+    },
+    "no_products_found": {
+      "fr": "Aucun article trouvé",
+      "en": "No items found"
+    },
+    "try_modifying_filters": {
+      "fr": "Essayez de modifier vos filtres ou de taper une autre recherche.",
+      "en": "Try modifying your filters or typing another search."
+    },
+    "in": {
+      "fr": "dans",
+      "en": "in"
+    },
+    "choose_language": {
+      "fr": "Choisir la langue",
+      "en": "Choose language"
+    },
+    "unsaved_changes_title": {
+      "fr": "Modifications non enregistrées",
+      "en": "Unsaved changes"
+    },
+    "unsaved_changes_msg": {
+      "fr": "Voulez-vous abandonner vos modifications ?",
+      "en": "Do you want to discard your changes?"
+    },
+    "unsaved_changes_detail": {
+      "fr": "Si vous quittez, toutes les modifications non enregistrées seront perdues.",
+      "en": "If you leave, all unsaved changes will be lost."
+    },
+    "abandon": {
+      "fr": "Abandonner",
+      "en": "Discard"
+    },
+    "stay": {
+      "fr": "Rester",
+      "en": "Stay"
+    },
+    "delete_product_title": {
+      "fr": "Suppression de produit",
+      "en": "Product Deletion"
+    },
+    "delete_product_msg": {
+      "fr": "Voulez-vous vraiment supprimer le produit \"{productName}\" ?",
+      "en": "Are you sure you want to delete the product \"{productName}\"?"
+    },
+    "delete_product_detail": {
+      "fr": "Cette action est irréversible (le produit sera masqué de l'inventaire).",
+      "en": "This action is irreversible (the product will be hidden from the inventory)."
+    },
+    "clear_basket_title": {
+      "fr": "Vider le panier",
+      "en": "Clear Basket"
+    },
+    "clear_basket_msg": {
+      "fr": "Voulez vous vraiment vider tout le panier ?",
+      "en": "Are you sure you want to empty the entire basket?"
+    },
+    "clear_basket_confirm": {
+      "fr": "Vider le panier",
+      "en": "Clear basket"
+    },
+    "sale_validated_msg": {
+      "fr": "Vente validée d'un montant de {amount} !",
+      "en": "Sale validated for an amount of {amount}!"
+    },
+    "menu_about": {
+      "fr": "À propos",
+      "en": "About"
+    },
+    "menu_services": {
+      "fr": "Services",
+      "en": "Services"
+    },
+    "menu_hide": {
+      "fr": "Masquer",
+      "en": "Hide"
+    },
+    "menu_hide_others": {
+      "fr": "Masquer les autres",
+      "en": "Hide Others"
+    },
+    "menu_show_all": {
+      "fr": "Tout afficher",
+      "en": "Show All"
+    },
+    "menu_quit": {
+      "fr": "Quitter",
+      "en": "Quit"
+    },
+    "menu_file": {
+      "fr": "Fichier",
+      "en": "File"
+    },
+    "menu_add_item": {
+      "fr": "Ajouter un item",
+      "en": "Add Item"
+    },
+    "menu_delete_product": {
+      "fr": "Supprimer le produit",
+      "en": "Delete Product"
+    },
+    "menu_clear_basket": {
+      "fr": "Vider le panier",
+      "en": "Clear Basket"
+    },
+    "menu_close": {
+      "fr": "Fermer",
+      "en": "Close"
+    },
+    "menu_edit": {
+      "fr": "Édition",
+      "en": "Edit"
+    },
+    "menu_undo": {
+      "fr": "Annuler",
+      "en": "Undo"
+    },
+    "menu_redo": {
+      "fr": "Rétablir",
+      "en": "Redo"
+    },
+    "menu_cut": {
+      "fr": "Couper",
+      "en": "Cut"
+    },
+    "menu_copy": {
+      "fr": "Copier",
+      "en": "Copy"
+    },
+    "menu_paste": {
+      "fr": "Coller",
+      "en": "Paste"
+    },
+    "menu_select_all": {
+      "fr": "Tout sélectionner",
+      "en": "Select All"
+    },
+    "menu_view": {
+      "fr": "Affichage",
+      "en": "View"
+    },
+    "menu_reload": {
+      "fr": "Recharger",
+      "en": "Reload"
+    },
+    "menu_force_reload": {
+      "fr": "Forcer le rechargement",
+      "en": "Force Reload"
+    },
+    "menu_devtools": {
+      "fr": "Outils de développement",
+      "en": "Toggle Developer Tools"
+    },
+    "menu_reset_zoom": {
+      "fr": "Réinitialiser le zoom",
+      "en": "Actual Size"
+    },
+    "menu_zoom_in": {
+      "fr": "Zoom avant",
+      "en": "Zoom In"
+    },
+    "menu_zoom_out": {
+      "fr": "Zoom arrière",
+      "en": "Zoom Out"
+    },
+    "menu_fullscreen": {
+      "fr": "Plein écran",
+      "en": "Toggle Full Screen"
+    },
+    "menu_window": {
+      "fr": "Fenêtre",
+      "en": "Window"
+    },
+    "menu_minimize": {
+      "fr": "Réduire",
+      "en": "Minimize"
+    },
+    "menu_zoom": {
+      "fr": "Agrandir",
+      "en": "Zoom"
+    },
+    "menu_front": {
+      "fr": "Tout mettre au premier plan",
+      "en": "Bring All to Front"
+    }
+  }
+}
