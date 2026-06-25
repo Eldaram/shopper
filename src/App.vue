@@ -83,6 +83,7 @@
     <ContextMenu
       ref="contextMenu"
       @delete-product="handleDeleteProductFromContextMenu"
+      @delete-category="handleDeleteCategoryFromContextMenu"
       @create-item="handleCreateItemFromContextMenu"
     />
   </div>
@@ -153,10 +154,13 @@ export default {
         this.openCreateProduct(this.selectedCategoryId);
       });
     }
-    if (window.electronAPI && typeof window.electronAPI.onMenuDeleteProduct === 'function') {
-      window.electronAPI.onMenuDeleteProduct(async () => {
+    if (window.electronAPI && typeof window.electronAPI.onMenuDeleteItem === 'function') {
+      window.electronAPI.onMenuDeleteItem(async () => {
         if (this.focusedProduct) {
           await this.deleteProduct(this.focusedProduct);
+        } else if (this.selectedCategoryId !== null) {
+          const cat = this.categories.find((c) => c.id === this.selectedCategoryId);
+          if (cat) await this.deleteCategory(cat);
         }
       });
     }
@@ -170,8 +174,8 @@ export default {
     }
   },
   beforeUnmount() {
-    if (window.electronAPI && typeof window.electronAPI.setDeleteMenuEnabled === 'function') {
-      window.electronAPI.setDeleteMenuEnabled(false);
+    if (window.electronAPI && typeof window.electronAPI.setDeleteItemState === 'function') {
+      window.electronAPI.setDeleteItemState(false, null);
     }
     if (window.electronAPI && typeof window.electronAPI.setClearBasketEnabled === 'function') {
       window.electronAPI.setClearBasketEnabled(false);
@@ -179,12 +183,16 @@ export default {
   },
   watch: {
     focusedProduct: {
-      handler(newVal) {
-        if (window.electronAPI && typeof window.electronAPI.setDeleteMenuEnabled === 'function') {
-          window.electronAPI.setDeleteMenuEnabled(newVal !== null);
-        }
+      handler() {
+        this.updateDeleteMenuState();
       },
       immediate: true,
+    },
+    selectedCategoryId: {
+      handler() {
+        this.updateDeleteMenuState();
+      },
+      immediate: false,
     },
   },
   methods: {
@@ -300,6 +308,22 @@ export default {
       const prod = product || this.contextMenu.targetProduct;
       if (prod) {
         await this.deleteProduct(prod);
+      }
+    },
+    async handleDeleteCategoryFromContextMenu(category) {
+      if (category) {
+        await this.deleteCategory(category);
+      }
+    },
+    updateDeleteMenuState() {
+      if (!window.electronAPI || typeof window.electronAPI.setDeleteItemState !== 'function')
+        return;
+      if (this.focusedProduct !== null) {
+        window.electronAPI.setDeleteItemState(true, this.$t('menu_delete_product'));
+      } else if (this.selectedCategoryId !== null) {
+        window.electronAPI.setDeleteItemState(true, this.$t('menu_delete_category'));
+      } else {
+        window.electronAPI.setDeleteItemState(false, this.$t('menu_delete_product'));
       }
     },
   },

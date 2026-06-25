@@ -341,7 +341,10 @@ describe('Shopper SQLite Database Integration', () => {
       const deliveries = DeliveryOrderController.getAll();
       expect(deliveries.length).toBeGreaterThanOrEqual(1);
 
-      const del = deliveries[0];
+      const del = deliveries.find(
+        (d) => d.delivery_address && d.delivery_address.includes('Paris')
+      );
+      expect(del).toBeDefined();
       expect(del.status).toBe('en_cours');
 
       // Update status
@@ -358,6 +361,102 @@ describe('Shopper SQLite Database Integration', () => {
       expect(() => {
         DeliveryOrderController.updateStatus(del.id, 'invalid_status_name');
       }).toThrow('Invalid status');
+    });
+  });
+
+  describe('Category Deletion & Product Re-attribution', () => {
+    let tvaId;
+
+    beforeAll(() => {
+      // Use first available TVA rate for product creation in this suite
+      tvaId = TvaController.getAll()[0].id;
+    });
+
+    it('should reparent products to the grandparent when deleting a subcategory', () => {
+      // Create hierarchy: rootA -> childB
+      const rootAId = CategoryController.create({ name: 'TestRoot_A' });
+      const childBId = CategoryController.create({ name: 'TestChild_B', parent_id: rootAId });
+
+      // Create two products in childB
+      const prod1Id = ProductController.create({
+        name: 'Prod in B 1',
+        price_ht: 1.0,
+        price_ttc: 1.2,
+        tva_id: tvaId,
+        category_id: childBId,
+      });
+      const prod2Id = ProductController.create({
+        name: 'Prod in B 2',
+        price_ht: 2.0,
+        price_ttc: 2.4,
+        tva_id: tvaId,
+        category_id: childBId,
+      });
+
+      // Delete childB with reparent
+      const result = CategoryController.deleteWithReparent(childBId);
+      expect(result).toBe(true);
+
+      // childB must no longer exist
+      expect(CategoryController.getById(childBId)).toBeUndefined();
+
+      // Both products must now belong to rootA
+      const p1 = ProductController.getById(prod1Id);
+      const p2 = ProductController.getById(prod2Id);
+      expect(p1.category_id).toBe(rootAId);
+      expect(p2.category_id).toBe(rootAId);
+    });
+
+    it('should set products category_id to null when deleting a root category with no parent', () => {
+      // Create a standalone root category
+      const rootCId = CategoryController.create({ name: 'TestRoot_C' });
+
+      // Create a product in rootC
+      const prodId = ProductController.create({
+        name: 'Prod in Root C',
+        price_ht: 3.0,
+        price_ttc: 3.6,
+        tva_id: tvaId,
+        category_id: rootCId,
+      });
+
+      // Delete rootC with reparent (parent_id is null)
+      const result = CategoryController.deleteWithReparent(rootCId);
+      expect(result).toBe(true);
+
+      // rootC must no longer exist
+      expect(CategoryController.getById(rootCId)).toBeUndefined();
+
+      // Product must now have category_id === null
+      const prod = ProductController.getById(prodId);
+      expect(prod.category_id).toBeNull();
+    });
+
+    it('should reparent direct child subcategories to the grandparent when deleting a middle category', () => {
+      // Create hierarchy: rootA -> middleB -> grandchildD
+      const rootAId = CategoryController.create({ name: 'TestRoot_A2' });
+      const middleBId = CategoryController.create({ name: 'TestMiddle_B2', parent_id: rootAId });
+      const grandchildDId = CategoryController.create({
+        name: 'TestGrandchild_D',
+        parent_id: middleBId,
+      });
+
+      // Delete middleB
+      const result = CategoryController.deleteWithReparent(middleBId);
+      expect(result).toBe(true);
+
+      // middleB no longer exists
+      expect(CategoryController.getById(middleBId)).toBeUndefined();
+
+      // grandchildD must now have parent_id === rootAId (moved up one level)
+      const grandchild = CategoryController.getById(grandchildDId);
+      expect(grandchild).toBeDefined();
+      expect(grandchild.parent_id).toBe(rootAId);
+    });
+
+    it('should return false when trying to delete a non-existent category', () => {
+      const result = CategoryController.deleteWithReparent(99999);
+      expect(result).toBe(false);
     });
   });
 });

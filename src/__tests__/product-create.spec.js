@@ -21,7 +21,7 @@ const mockElectronAPI = {
   saveImage: vi.fn(),
   showExitConfirmationDialog: vi.fn(),
   confirmDeleteProduct: vi.fn(),
-  setDeleteMenuEnabled: vi.fn(),
+  setDeleteItemState: vi.fn(),
   onMenuCreateProduct: vi.fn(),
   onMenuDeleteProduct: vi.fn(),
 };
@@ -400,12 +400,12 @@ describe('Product Manual Creation & Edition Tests', () => {
       const wrapper = mount(App);
       await new Promise((resolve) => setTimeout(resolve, 50));
 
-      expect(mockElectronAPI.setDeleteMenuEnabled).toHaveBeenCalledWith(false);
+      expect(mockElectronAPI.setDeleteItemState).toHaveBeenCalledWith(false, expect.any(String));
 
       wrapper.vm.focusedProduct = wrapper.vm.products[0];
       await wrapper.vm.$nextTick();
 
-      expect(mockElectronAPI.setDeleteMenuEnabled).toHaveBeenCalledWith(true);
+      expect(mockElectronAPI.setDeleteItemState).toHaveBeenCalledWith(true, expect.any(String));
     });
 
     it('should display product context menu with delete option and invoke deleteProduct', async () => {

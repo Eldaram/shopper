@@ -48,6 +48,11 @@ class CategoryController {
     if (!id) throw new Error('ID is required');
     return CategoryModel.delete(id);
   }
+
+  deleteWithReparent(id) {
+    if (!id) throw new Error('ID is required');
+    return CategoryModel.deleteWithReparent(id);
+  }
 }
 
 module.exports = new CategoryController();

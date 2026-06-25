@@ -397,6 +397,26 @@
     "menu_front": {
       "fr": "Tout mettre au premier plan",
       "en": "Bring All to Front"
+    },
+    "delete_category_title": {
+      "fr": "Suppression de catégorie",
+      "en": "Delete Category"
+    },
+    "delete_category_msg": {
+      "fr": "Voulez-vous vraiment supprimer la catégorie \"{categoryName}\" ?",
+      "en": "Are you sure you want to delete category \"{categoryName}\"?"
+    },
+    "delete_category_detail": {
+      "fr": "Aucun article ne sera supprimé. Tous les articles de cette catégorie seront déplacés vers la catégorie parente.",
+      "en": "No items will be deleted. All products in this category will be moved to the parent category."
+    },
+    "menu_delete_category": {
+      "fr": "Supprimer la catégorie",
+      "en": "Delete Category"
+    },
+    "delete_category": {
+      "fr": "Supprimer la catégorie",
+      "en": "Delete category"
     }
   }
 }

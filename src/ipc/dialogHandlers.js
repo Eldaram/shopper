@@ -59,4 +59,24 @@ module.exports = {
     });
     return result.response === 0;
   },
+
+  'show-delete-category-dialog': async (event, categoryName) => {
+    const mainModule = require('../../main');
+    const mainWindow = mainModule.getMainWindow ? mainModule.getMainWindow() : null;
+
+    const TranslationController = require('../controllers/TranslationController');
+    const t = (key) =>
+      TranslationController.getText(TranslationController.getCurrentLanguage(), key);
+
+    const result = await dialog.showMessageBox(mainWindow, {
+      type: 'warning',
+      buttons: [t('delete'), t('cancel')],
+      defaultId: 1,
+      cancelId: 1,
+      title: t('delete_category_title'),
+      message: t('delete_category_msg').replace('{categoryName}', categoryName),
+      detail: t('delete_category_detail'),
+    });
+    return result.response === 0;
+  },
 };

@@ -1,7 +1,7 @@
 <template>
   <div v-if="visible" class="context-menu" :style="{ top: y + 'px', left: x + 'px' }">
     <template v-if="targetProduct">
-      <div class="context-menu-item" @click="handleDelete">
+      <div class="context-menu-item" @click="handleDeleteProduct">
         <span class="context-menu-icon">🗑️</span>
         <span>{{ $t('delete_item') }}</span>
       </div>
@@ -14,6 +14,14 @@
           {{ targetCategory ? ` ${$t('in')} ${targetCategory.name}` : '' }}
         </span>
       </div>
+      <div
+        v-if="targetCategory"
+        class="context-menu-item context-menu-item--danger"
+        @click="handleDeleteCategory"
+      >
+        <span class="context-menu-icon">🗑️</span>
+        <span>{{ $t('delete_category') }}</span>
+      </div>
     </template>
   </div>
 </template>
@@ -21,7 +29,7 @@
 <script>
 export default {
   name: 'ContextMenu',
-  emits: ['delete-product', 'create-item'],
+  emits: ['delete-product', 'delete-category', 'create-item'],
   data() {
     return {
       visible: false,
@@ -85,9 +93,15 @@ export default {
       this.targetProduct = null;
       this.targetCategory = null;
     },
-    handleDelete() {
+    handleDeleteProduct() {
       if (this.targetProduct) {
         this.$emit('delete-product', this.targetProduct);
+      }
+      this.close();
+    },
+    handleDeleteCategory() {
+      if (this.targetCategory) {
+        this.$emit('delete-category', this.targetCategory);
       }
       this.close();
     },

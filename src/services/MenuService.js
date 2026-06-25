@@ -41,13 +41,13 @@ class MenuService {
             },
           },
           {
-            id: 'delete-product-item',
+            id: 'delete-item',
             label: t('menu_delete_product'),
             accelerator: 'CmdOrCtrl+D',
             enabled: false,
             click: () => {
               if (window && !window.isDestroyed()) {
-                window.webContents.send('menu-delete-product');
+                window.webContents.send('menu-delete-item');
               }
             },
           },
@@ -115,12 +115,13 @@ class MenuService {
     Menu.setApplicationMenu(menu);
   }
 
-  setDeleteProductEnabled(enabled) {
+  setDeleteItemState(enabled, label) {
     const menu = Menu.getApplicationMenu();
     if (menu) {
-      const item = menu.getMenuItemById('delete-product-item');
+      const item = menu.getMenuItemById('delete-item');
       if (item) {
         item.enabled = enabled;
+        if (label) item.label = label;
       }
     }
   }

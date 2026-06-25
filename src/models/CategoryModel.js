@@ -65,6 +65,35 @@ class CategoryModel extends BaseModel {
   }
 
   /**
+   * Deletes a category and reparents its direct products and subcategories
+   * to the grandparent category (or null if no parent) in a single transaction.
+   * @param {number} id
+   * @returns {boolean} True if the category was found and deleted.
+   */
+  deleteWithReparent(id) {
+    const ProductModel = require('./ProductModel');
+
+    const category = this.findById(id);
+    if (!category) return false;
+
+    const newParentId = category.parent_id; // may be null
+
+    const run = this.transaction(() => {
+      // Reparent direct product children
+      ProductModel.reparentByCategory(id, newParentId);
+
+      // Reparent direct subcategory children
+      this.run('UPDATE Category SET parent_id = ? WHERE parent_id = ?', [newParentId, id]);
+
+      // Delete the category itself
+      this.run('DELETE FROM Category WHERE id = ?', [id]);
+    });
+
+    run();
+    return true;
+  }
+
+  /**
    * Deletes a category. Subcategories will have parent_id set to NULL due to ON DELETE SET NULL constraint.
    * @param {number} id
    * @returns {boolean} True if deleted.
