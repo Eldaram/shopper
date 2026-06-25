@@ -166,6 +166,7 @@
         <div class="detail-actions">
           <!-- View mode buttons -->
           <template v-if="activeState && activeState.isViewMode()">
+            <BaseButton variant="success" @click="$emit('add-to-basket', product)">Ajouter au panier</BaseButton>
             <BaseButton variant="secondary" @click="activeState.handleEdit()">Modifier</BaseButton>
             <BaseButton variant="danger" @click="$emit('delete')">Supprimer</BaseButton>
             <BaseButton variant="primary" :disabled="true">Enregistrer</BaseButton>
@@ -338,7 +339,7 @@ export default {
       required: true,
     },
   },
-  emits: ['close', 'product-created', 'product-updated', 'delete'],
+  emits: ['close', 'product-created', 'product-updated', 'delete', 'add-to-basket'],
   data() {
     return {
       isDragOver: false,

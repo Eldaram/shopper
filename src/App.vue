@@ -6,6 +6,7 @@
       :products="products"
       :selected-category-id="selectedCategoryId"
       :active-ancestor-id="activeAncestorId"
+      :is-viewing-basket="isViewingBasket"
       @select-category="handleSelectCategory"
       @contextmenu-category="handleCategoryContextMenu"
     />
@@ -16,21 +17,46 @@
       <header class="topbar">
         <Breadcrumbs :path="breadcrumbsPath" @select-category="handleSelectCategory" />
 
-        <!-- Search Bar (Visible only when not viewing product details) -->
-        <div v-if="!focusedProduct && !isCreatingProduct" class="search-container">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Rechercher un article..."
-            class="search-input"
-          />
+        <div class="topbar-right">
+          <!-- Search Bar (Visible only when not viewing product details, creation, or basket) -->
+          <div v-if="!focusedProduct && !isCreatingProduct && !isViewingBasket" class="search-container">
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Rechercher un article..."
+              class="search-input"
+            />
+          </div>
+
+          <!-- Basket Button: Accessible at all times -->
+          <button
+            class="basket-header-btn"
+            :class="{ active: isViewingBasket }"
+            @click="handleToggleBasket"
+            title="Voir le panier"
+          >
+            <span class="basket-btn-icon">🛒</span>
+            <span class="basket-btn-text">Panier ({{ totalBasketItems }})</span>
+          </button>
         </div>
       </header>
 
       <!-- Content Area -->
       <div class="content-area" @contextmenu="handleWorkspaceContextMenu">
-        <!-- Transition between grid view and details/creation view -->
-        <div v-if="focusedProduct || isCreatingProduct">
+        <!-- Transition between basket view, grid view and details/creation view -->
+        <div v-if="isViewingBasket">
+          <BasketView
+            :basket="basket"
+            :tva-rates="tvaRates"
+            @close="handleCloseBasket"
+            @update-quantity="handleUpdateBasketQuantity"
+            @remove-item="handleRemoveBasketItem"
+            @clear-basket="confirmAndClearBasket"
+            @validate-sale="handleValidateSale"
+          />
+        </div>
+
+        <div v-else-if="focusedProduct || isCreatingProduct">
           <ProductDetail
             ref="productDetail"
             :product="focusedProduct"
@@ -42,6 +68,7 @@
             @product-created="handleProductCreated"
             @product-updated="handleProductUpdated"
             @delete="deleteFocusedProduct"
+            @add-to-basket="addToBasket"
           />
         </div>
 
@@ -85,6 +112,7 @@
                 :product="prod"
                 @click="handleSelectProduct(prod)"
                 @contextmenu.prevent.stop="handleProductContextMenu($event, prod)"
+                @add-to-basket="addToBasket"
               />
             </div>
 
@@ -98,8 +126,8 @@
       </div>
     </main>
 
-    <!-- Floating Action Button (FAB) for fast item creation -->
-    <button class="fab-btn" @click="handleFabClick" title="Créer un article">
+    <!-- Floating Action Button (FAB) for fast item creation (hidden on basket page) -->
+    <button v-if="!isViewingBasket" class="fab-btn" @click="handleFabClick" title="Créer un article">
       <span>+</span>
     </button>
 
@@ -134,6 +162,7 @@ import Breadcrumbs from './components/Breadcrumbs.vue';
 import CategoryCard from './components/CategoryCard.vue';
 import ProductCard from './components/ProductCard.vue';
 import ProductDetail from './components/ProductDetail.vue';
+import BasketView from './components/BasketView.vue';
 
 export default {
   name: 'App',
@@ -143,6 +172,7 @@ export default {
     CategoryCard,
     ProductCard,
     ProductDetail,
+    BasketView,
   },
   data() {
     return {
@@ -154,6 +184,8 @@ export default {
       searchQuery: '',
       isCreatingProduct: false,
       preselectedCategoryId: null,
+      basket: [],
+      isViewingBasket: false,
       contextMenu: {
         visible: false,
         x: 0,
@@ -189,12 +221,17 @@ export default {
         }
         path.push(...catPath.reverse());
       }
-      if (this.focusedProduct !== null) {
+      if (this.isViewingBasket) {
+        path.push({ name: 'Panier', type: 'basket' });
+      } else if (this.focusedProduct !== null) {
         path.push({ name: this.focusedProduct.name, type: 'product' });
       } else if (this.isCreatingProduct) {
         path.push({ name: "Création d'un article", type: 'product' });
       }
       return path;
+    },
+    totalBasketItems() {
+      return this.basket.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
     },
     subcategories() {
       if (this.selectedCategoryId === null) {
@@ -241,11 +278,22 @@ export default {
         }
       });
     }
+    if (window.electronAPI && typeof window.electronAPI.onMenuClearBasket === 'function') {
+      window.electronAPI.onMenuClearBasket(() => {
+        this.confirmAndClearBasket();
+      });
+    }
+    if (window.electronAPI && typeof window.electronAPI.setClearBasketEnabled === 'function') {
+      window.electronAPI.setClearBasketEnabled(this.basket.length > 0);
+    }
   },
   beforeUnmount() {
     window.removeEventListener('click', this.closeContextMenu);
     if (window.electronAPI && typeof window.electronAPI.setDeleteMenuEnabled === 'function') {
       window.electronAPI.setDeleteMenuEnabled(false);
+    }
+    if (window.electronAPI && typeof window.electronAPI.setClearBasketEnabled === 'function') {
+      window.electronAPI.setClearBasketEnabled(false);
     }
   },
   watch: {
@@ -274,12 +322,18 @@ export default {
       }
     },
     async handleSelectCategory(catId) {
+      if (this.isViewingBasket) {
+        this.isViewingBasket = false;
+      }
       const proceed = await this.confirmExitCreateMode();
       if (!proceed) return;
       this.selectedCategoryId = catId;
       this.focusedProduct = null;
     },
     async handleSelectProduct(prod) {
+      if (this.isViewingBasket) {
+        this.isViewingBasket = false;
+      }
       const proceed = await this.confirmExitCreateMode();
       if (!proceed) return;
       this.focusedProduct = prod;
@@ -297,6 +351,9 @@ export default {
       return ids;
     },
     openCreateProduct(categoryId = null) {
+      if (this.isViewingBasket) {
+        this.isViewingBasket = false;
+      }
       this.preselectedCategoryId = categoryId;
       this.isCreatingProduct = true;
       this.focusedProduct = null;
@@ -449,6 +506,75 @@ export default {
           alert(`Erreur lors de la suppression: ${err.message}`);
         }
       }
+    },
+    async handleToggleBasket() {
+      const proceed = await this.confirmExitCreateMode();
+      if (!proceed) return;
+      this.isViewingBasket = !this.isViewingBasket;
+      if (this.isViewingBasket) {
+        this.focusedProduct = null;
+        this.isCreatingProduct = false;
+      }
+    },
+    handleCloseBasket() {
+      this.isViewingBasket = false;
+    },
+    addToBasket(product) {
+      const existing = this.basket.find((item) => item.product.id === product.id);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        this.basket.push({
+          product: { ...product },
+          quantity: 1,
+        });
+      }
+      if (window.electronAPI && typeof window.electronAPI.setClearBasketEnabled === 'function') {
+        window.electronAPI.setClearBasketEnabled(true);
+      }
+    },
+    handleUpdateBasketQuantity(productId, quantity) {
+      const item = this.basket.find((item) => item.product.id === productId);
+      if (item) {
+        item.quantity = Math.max(1, quantity);
+      }
+    },
+    handleRemoveBasketItem(productId) {
+      const idx = this.basket.findIndex((item) => item.product.id === productId);
+      if (idx !== -1) {
+        this.basket.splice(idx, 1);
+      }
+      if (this.basket.length === 0) {
+        if (window.electronAPI && typeof window.electronAPI.setClearBasketEnabled === 'function') {
+          window.electronAPI.setClearBasketEnabled(false);
+        }
+      }
+    },
+    async confirmAndClearBasket() {
+      if (this.basket.length === 0) return;
+      let confirmed = false;
+      if (window.electronAPI && typeof window.electronAPI.confirmClearBasket === 'function') {
+        confirmed = await window.electronAPI.confirmClearBasket();
+      } else {
+        confirmed = window.confirm("Voulez vous vraiment vider tout le panier ?");
+      }
+      if (confirmed) {
+        this.clearBasket();
+      }
+    },
+    clearBasket() {
+      this.basket = [];
+      if (window.electronAPI && typeof window.electronAPI.setClearBasketEnabled === 'function') {
+        window.electronAPI.setClearBasketEnabled(false);
+      }
+    },
+    handleValidateSale() {
+      const formattedTotal = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(
+        this.basket.reduce((sum, item) => sum + (parseFloat(item.product.price_ttc) || 0) * (parseInt(item.quantity) || 0), 0)
+      );
+      alert(`Vente validée d'un montant de ${formattedTotal} !`);
+      this.clearBasket();
+      this.isViewingBasket = false;
     },
     loadBrowserMocks() {
       this.categories = [

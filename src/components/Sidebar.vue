@@ -14,7 +14,7 @@
         <ul class="nav-list">
           <li
             class="nav-item"
-            :class="{ active: selectedCategoryId === null }"
+            :class="{ active: !isViewingBasket && selectedCategoryId === null }"
             @click="$emit('select-category', null)"
             @contextmenu.prevent="$emit('contextmenu-category', $event, null)"
           >
@@ -26,7 +26,7 @@
             :key="category.id"
             class="nav-item"
             :class="{
-              active: category.id === selectedCategoryId || category.id === activeAncestorId,
+              active: !isViewingBasket && (category.id === selectedCategoryId || category.id === activeAncestorId),
             }"
             @click="$emit('select-category', category.id)"
             @contextmenu.prevent="$emit('contextmenu-category', $event, category)"
@@ -59,6 +59,10 @@ export default {
     activeAncestorId: {
       type: [Number, null],
       default: null,
+    },
+    isViewingBasket: {
+      type: Boolean,
+      default: false,
     },
   },
   emits: ['select-category', 'contextmenu-category'],

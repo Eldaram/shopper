@@ -28,4 +28,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('menu-create-product', (_event, value) => callback(value)),
   onMenuDeleteProduct: (callback) =>
     ipcRenderer.on('menu-delete-product', (_event, value) => callback(value)),
+  setClearBasketEnabled: (enabled) => ipcRenderer.send('set-clear-basket-enabled', enabled),
+  confirmClearBasket: () => ipcRenderer.invoke('show-clear-basket-dialog'),
+  onMenuClearBasket: (callback) =>
+    ipcRenderer.on('menu-clear-basket', (_event, value) => callback(value)),
 });
