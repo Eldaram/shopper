@@ -49,6 +49,7 @@ const mockElectron = {
   ipcMain: {
     handle: vi.fn(),
     removeHandler: vi.fn(),
+    on: vi.fn(),
   },
   protocol: {
     registerSchemesAsPrivileged: vi.fn(),

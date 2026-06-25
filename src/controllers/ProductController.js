@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const ProductModel = require('../models/ProductModel');
 const TvaModel = require('../models/TvaModel');
 const CategoryModel = require('../models/CategoryModel');
@@ -48,15 +50,55 @@ class ProductController {
       }
     }
 
+    const existingProduct = ProductModel.findById(id);
+    const oldImagePath = existingProduct ? existingProduct.image_path : null;
+
     const updated = ProductModel.update(id, data);
     if (!updated) {
       throw new Error(`Product with ID ${id} not found or has been deleted`);
     }
+
+    // Clean up replaced or deleted image file
+    if (oldImagePath && oldImagePath.startsWith('media://') && oldImagePath !== data.image_path) {
+      this._deleteImageFile(oldImagePath);
+    }
+
     return updated;
+  }
+
+  _deleteImageFile(imagePath) {
+    try {
+      let electron;
+      try {
+        electron = require('electron');
+      } catch (e) {
+        // Safe catch if not in Electron environment
+      }
+      const app = electron && electron.app;
+      if (!app) {
+        console.warn('Electron app is not available, skipping image file deletion.');
+        return;
+      }
+      const filename = imagePath.slice('media://'.length);
+      const destDir = path.join(app.getPath('userData'), 'product-images');
+      const destPath = path.join(destDir, filename);
+      if (fs.existsSync(destPath)) {
+        fs.unlinkSync(destPath);
+        console.log(`Deleted product image file: ${destPath}`);
+      }
+    } catch (err) {
+      console.error(`Failed to delete image file ${imagePath}:`, err);
+    }
   }
 
   delete(id) {
     if (!id) throw new Error('ID is required');
+
+    const existing = ProductModel.findById(id);
+    if (existing && existing.image_path && existing.image_path.startsWith('media://')) {
+      this._deleteImageFile(existing.image_path);
+    }
+
     return ProductModel.softDelete(id);
   }
 

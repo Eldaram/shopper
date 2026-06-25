@@ -34,6 +34,17 @@ class MenuService {
               }
             },
           },
+          {
+            id: 'delete-product-item',
+            label: 'Supprimer le produit',
+            accelerator: 'CmdOrCtrl+D',
+            enabled: false,
+            click: () => {
+              if (window && !window.isDestroyed()) {
+                window.webContents.send('menu-delete-product');
+              }
+            },
+          },
           { type: 'separator' },
           isMac ? { role: 'close', label: 'Fermer' } : { role: 'quit', label: 'Quitter' },
         ],
@@ -83,6 +94,16 @@ class MenuService {
 
     const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
+  }
+
+  setDeleteProductEnabled(enabled) {
+    const menu = Menu.getApplicationMenu();
+    if (menu) {
+      const item = menu.getMenuItemById('delete-product-item');
+      if (item) {
+        item.enabled = enabled;
+      }
+    }
   }
 }
 

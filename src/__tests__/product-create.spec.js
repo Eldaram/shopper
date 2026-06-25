@@ -10,16 +10,21 @@ const mockElectronAPI = {
   getProducts: vi.fn(),
   getTvaRates: vi.fn(),
   createProduct: vi.fn(),
+  updateProduct: vi.fn(),
+  deleteProduct: vi.fn(),
   selectImage: vi.fn(),
   saveImage: vi.fn(),
   showExitConfirmationDialog: vi.fn(),
+  confirmDeleteProduct: vi.fn(),
+  setDeleteMenuEnabled: vi.fn(),
   onMenuCreateProduct: vi.fn(),
+  onMenuDeleteProduct: vi.fn(),
 };
 
 globalThis.window = globalThis.window || {};
 globalThis.window.electronAPI = mockElectronAPI;
 
-describe('Product Manual Creation & Draft Tests', () => {
+describe('Product Manual Creation & Edition Tests', () => {
   const categoriesMock = [
     { id: 1, name: 'Epicerie', parent_id: null },
     { id: 2, name: 'Boissons', parent_id: null },
@@ -34,7 +39,7 @@ describe('Product Manual Creation & Draft Tests', () => {
   });
 
   describe('ProductDetail.vue Component', () => {
-    it('should initialize with empty state in create mode without draft', () => {
+    it('should initialize with empty state in create mode', () => {
       const wrapper = mount(ProductDetail, {
         props: {
           mode: 'create',
@@ -47,36 +52,6 @@ describe('Product Manual Creation & Draft Tests', () => {
       expect(wrapper.vm.localProduct.name).toBe('');
       expect(wrapper.vm.localProduct.category_id).toBe(2);
       expect(wrapper.vm.localProduct.tva_id).toBe(1); // Defaults to first rate ID
-    });
-
-    it('should load draft values if provided in create mode', () => {
-      const draftMock = {
-        name: 'Draft Soda',
-        barcode: '123456',
-        category_id: 1,
-        tva_id: 2,
-        price_ht: '2.50',
-        price_ttc: '2.64',
-        image_path: 'media://img_draft.png',
-        image_preview: 'data:image/png;base64,123',
-      };
-
-      const wrapper = mount(ProductDetail, {
-        props: {
-          mode: 'create',
-          categories: categoriesMock,
-          tvaRates: tvaRatesMock,
-          draft: draftMock,
-        },
-      });
-
-      expect(wrapper.vm.localProduct.name).toBe('Draft Soda');
-      expect(wrapper.vm.localProduct.barcode).toBe('123456');
-      expect(wrapper.vm.localProduct.category_id).toBe(1);
-      expect(wrapper.vm.localProduct.tva_id).toBe(2);
-      expect(wrapper.vm.localProduct.price_ht).toBe('2.50');
-      expect(wrapper.vm.localProduct.price_ttc).toBe('2.64');
-      expect(wrapper.vm.localProduct.image_path).toBe('media://img_draft.png');
     });
 
     it('should calculate TTC from HT automatically', async () => {
@@ -212,12 +187,10 @@ describe('Product Manual Creation & Draft Tests', () => {
         },
       });
 
-      // Set image data
       wrapper.vm.localProduct.image_path = 'C:\\Users\\Mock\\image.jpg';
       wrapper.vm.localProduct.image_preview = 'blob:mock-preview';
       await wrapper.vm.$nextTick();
 
-      // Find delete button and click it
       const btn = wrapper.find('.btn-delete-img');
       expect(btn.exists()).toBe(true);
 
@@ -226,33 +199,113 @@ describe('Product Manual Creation & Draft Tests', () => {
       expect(wrapper.vm.localProduct.image_path).toBeNull();
       expect(wrapper.vm.localProduct.image_preview).toBeNull();
     });
+
+    it('should transition from view mode to edit mode and update form state', async () => {
+      const existingProduct = {
+        id: 42,
+        name: 'Soda Drink',
+        barcode: '9999',
+        category_id: 2,
+        tva_id: 1,
+        price_ht: 1.5,
+        price_ttc: 1.8,
+        image_path: 'media://soda.png',
+        updated_at: '2026-06-25 09:20:00',
+      };
+
+      const wrapper = mount(ProductDetail, {
+        props: {
+          mode: 'view',
+          product: existingProduct,
+          categories: categoriesMock,
+          tvaRates: tvaRatesMock,
+        },
+      });
+
+      expect(wrapper.vm.currentStateName).toBe('view');
+      expect(wrapper.vm.activeState.isViewMode()).toBe(true);
+      expect(wrapper.vm.activeState.isEditable()).toBe(false);
+      expect(wrapper.text()).toContain('Détails du Produit');
+      expect(wrapper.text()).toContain('🔍 Consultation');
+      expect(wrapper.text()).toContain('Dernière modification');
+
+      wrapper.vm.transitionTo('edit');
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.currentStateName).toBe('edit');
+      expect(wrapper.vm.activeState.isEditMode()).toBe(true);
+      expect(wrapper.vm.activeState.isEditable()).toBe(true);
+      expect(wrapper.text()).toContain('Modifier le produit');
+      expect(wrapper.text()).toContain('✏️ Édition');
+
+      wrapper.vm.localProduct.name = 'New Name';
+      expect(wrapper.vm.isFormDirty()).toBe(true);
+    });
+
+    it('should call updateProduct and emit event on submit in edit mode', async () => {
+      const existingProduct = {
+        id: 42,
+        name: 'Soda Drink',
+        barcode: '9999',
+        category_id: 2,
+        tva_id: 1,
+        price_ht: 1.5,
+        price_ttc: 1.8,
+        image_path: 'media://soda.png',
+      };
+
+      const wrapper = mount(ProductDetail, {
+        props: {
+          mode: 'view',
+          product: existingProduct,
+          categories: categoriesMock,
+          tvaRates: tvaRatesMock,
+        },
+      });
+
+      wrapper.vm.transitionTo('edit');
+      await wrapper.vm.$nextTick();
+
+      wrapper.vm.localProduct.name = 'Updated Soda';
+
+      mockElectronAPI.updateProduct.mockResolvedValue(true);
+
+      await wrapper.vm.handleSave();
+
+      expect(mockElectronAPI.updateProduct).toHaveBeenCalledWith(
+        42,
+        expect.objectContaining({
+          name: 'Updated Soda',
+          category_id: 2,
+          price_ht: 1.5,
+        })
+      );
+      expect(wrapper.emitted('product-updated')).toBeTruthy();
+      expect(wrapper.emitted('product-updated')[0][0]).toBe(42);
+      expect(wrapper.vm.currentStateName).toBe('view');
+    });
   });
 
-  describe('App.vue confirmation and draft interactions', () => {
-    it('should prompt when trying to select category and creation form is dirty', async () => {
+  describe('App.vue confirmation and edit interactions', () => {
+    it('should prompt when trying to select category and creation form is dirty, exiting if Abandonner', async () => {
       mockElectronAPI.getCategories.mockResolvedValue(categoriesMock);
       mockElectronAPI.getProducts.mockResolvedValue([]);
       mockElectronAPI.getTvaRates.mockResolvedValue(tvaRatesMock);
 
       const wrapper = mount(App);
-      // Wait for fetchData
       await new Promise((resolve) => setTimeout(resolve, 50));
 
       wrapper.vm.isCreatingProduct = true;
       await wrapper.vm.$nextTick();
 
-      // Make the form dirty by typing in it
-      wrapper.vm.$refs.productDetail.localProduct.name = 'Draft Item';
+      wrapper.vm.$refs.productDetail.localProduct.name = 'New Item';
       wrapper.vm.$refs.productDetail.localProduct.category_id = 2;
 
-      // Mock confirmation dialog returning 0 (Keep as draft)
-      mockElectronAPI.showExitConfirmationDialog.mockResolvedValue(0);
+      mockElectronAPI.showExitConfirmationDialog.mockResolvedValue(0); // Abandonner
 
       await wrapper.vm.handleSelectCategory(1);
 
       expect(mockElectronAPI.showExitConfirmationDialog).toHaveBeenCalled();
-      expect(wrapper.vm.draftProduct.name).toBe('Draft Item');
-      expect(wrapper.vm.draftProduct.category_id).toBe(2);
       expect(wrapper.vm.isCreatingProduct).toBe(false);
       expect(wrapper.vm.selectedCategoryId).toBe(1);
     });
@@ -269,11 +322,9 @@ describe('Product Manual Creation & Draft Tests', () => {
       wrapper.vm.selectedCategoryId = 2;
       await wrapper.vm.$nextTick();
 
-      // Make the form dirty
-      wrapper.vm.$refs.productDetail.localProduct.name = 'Draft Item';
+      wrapper.vm.$refs.productDetail.localProduct.name = 'New Item';
 
-      // Dialog returns 1 (Cancel / Rester)
-      mockElectronAPI.showExitConfirmationDialog.mockResolvedValue(1);
+      mockElectronAPI.showExitConfirmationDialog.mockResolvedValue(1); // Rester
 
       await wrapper.vm.handleSelectCategory(1);
 
@@ -281,73 +332,127 @@ describe('Product Manual Creation & Draft Tests', () => {
       expect(wrapper.vm.isCreatingProduct).toBe(true);
     });
 
-    it('should prioritize draft category over context category when opening creation page', async () => {
+    it('should prompt when trying to select category and edition form is dirty, exiting if Abandonner', async () => {
       mockElectronAPI.getCategories.mockResolvedValue(categoriesMock);
-      mockElectronAPI.getProducts.mockResolvedValue([]);
+      mockElectronAPI.getProducts.mockResolvedValue([
+        { id: 10, name: 'Old Product', category_id: 1, price_ht: 1, price_ttc: 1.2, tva_id: 1 },
+      ]);
       mockElectronAPI.getTvaRates.mockResolvedValue(tvaRatesMock);
 
       const wrapper = mount(App);
       await new Promise((resolve) => setTimeout(resolve, 50));
 
-      wrapper.vm.draftProduct = { name: 'Draft Soda', category_id: 1 };
-
-      // Open creation page while context category is 2
-      wrapper.vm.openCreateProduct(2);
-
-      // Verify that category 1 from draft prevailed!
-      expect(wrapper.vm.preselectedCategoryId).toBe(1);
-      expect(wrapper.vm.isCreatingProduct).toBe(true);
-    });
-
-    it('should show Reprise du brouillon in the context menu if draftProduct is not null', async () => {
-      mockElectronAPI.getCategories.mockResolvedValue(categoriesMock);
-      mockElectronAPI.getProducts.mockResolvedValue([]);
-      mockElectronAPI.getTvaRates.mockResolvedValue(tvaRatesMock);
-
-      const wrapper = mount(App);
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      // With draftProduct null
-      wrapper.vm.draftProduct = null;
-      wrapper.vm.contextMenu = {
-        visible: true,
-        x: 100,
-        y: 100,
-        targetCategory: { id: 2, name: 'Boissons' },
-      };
-      await wrapper.vm.$nextTick();
-      expect(wrapper.text()).toContain('Ajouter un article dans Boissons');
-      expect(wrapper.text()).not.toContain('Reprise du brouillon');
-
-      // With draftProduct populated
-      wrapper.vm.draftProduct = { name: 'Draft product', category_id: 2 };
-      await wrapper.vm.$nextTick();
-      expect(wrapper.text()).toContain('Reprise du brouillon');
-      expect(wrapper.text()).not.toContain('Ajouter un article dans Boissons');
-    });
-
-    it('should prompt exit confirmation dialogue when leaving a loaded draft even if unedited', async () => {
-      mockElectronAPI.getCategories.mockResolvedValue(categoriesMock);
-      mockElectronAPI.getProducts.mockResolvedValue([]);
-      mockElectronAPI.getTvaRates.mockResolvedValue(tvaRatesMock);
-
-      const wrapper = mount(App);
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      wrapper.vm.draftProduct = { name: 'Draft Soda', category_id: 1 };
-      wrapper.vm.isCreatingProduct = true;
+      wrapper.vm.focusedProduct = wrapper.vm.products[0];
       await wrapper.vm.$nextTick();
 
-      const isDirty = wrapper.vm.$refs.productDetail.isFormDirty();
-      expect(isDirty).toBe(false);
+      wrapper.vm.$refs.productDetail.transitionTo('edit');
+      await wrapper.vm.$nextTick();
 
-      mockElectronAPI.showExitConfirmationDialog.mockResolvedValue(0);
+      wrapper.vm.$refs.productDetail.localProduct.name = 'Modified Product';
+
+      mockElectronAPI.showExitConfirmationDialog.mockResolvedValue(0); // Abandonner
 
       await wrapper.vm.handleSelectCategory(2);
 
       expect(mockElectronAPI.showExitConfirmationDialog).toHaveBeenCalled();
-      expect(wrapper.vm.isCreatingProduct).toBe(false);
+      expect(wrapper.vm.focusedProduct).toBeNull();
       expect(wrapper.vm.selectedCategoryId).toBe(2);
+    });
+
+    it('should not change screen during edition if user decides to stay (cancel dialog)', async () => {
+      mockElectronAPI.getCategories.mockResolvedValue(categoriesMock);
+      mockElectronAPI.getProducts.mockResolvedValue([
+        { id: 10, name: 'Old Product', category_id: 1, price_ht: 1, price_ttc: 1.2, tva_id: 1 },
+      ]);
+      mockElectronAPI.getTvaRates.mockResolvedValue(tvaRatesMock);
+
+      const wrapper = mount(App);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      wrapper.vm.focusedProduct = wrapper.vm.products[0];
+      await wrapper.vm.$nextTick();
+
+      wrapper.vm.$refs.productDetail.transitionTo('edit');
+      await wrapper.vm.$nextTick();
+
+      wrapper.vm.$refs.productDetail.localProduct.name = 'Modified Product';
+
+      mockElectronAPI.showExitConfirmationDialog.mockResolvedValue(1); // Rester
+
+      await wrapper.vm.handleSelectCategory(2);
+
+      expect(wrapper.vm.focusedProduct).not.toBeNull();
+      expect(wrapper.vm.focusedProduct.id).toBe(10);
+    });
+
+    it('should enable/disable delete menu item when focusedProduct changes', async () => {
+      mockElectronAPI.getCategories.mockResolvedValue(categoriesMock);
+      mockElectronAPI.getProducts.mockResolvedValue([
+        { id: 10, name: 'Old Product', category_id: 1, price_ht: 1, price_ttc: 1.2, tva_id: 1 },
+      ]);
+      mockElectronAPI.getTvaRates.mockResolvedValue(tvaRatesMock);
+
+      const wrapper = mount(App);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockElectronAPI.setDeleteMenuEnabled).toHaveBeenCalledWith(false);
+
+      wrapper.vm.focusedProduct = wrapper.vm.products[0];
+      await wrapper.vm.$nextTick();
+
+      expect(mockElectronAPI.setDeleteMenuEnabled).toHaveBeenCalledWith(true);
+    });
+
+    it('should display product context menu with delete option and invoke deleteProduct', async () => {
+      mockElectronAPI.getCategories.mockResolvedValue(categoriesMock);
+      mockElectronAPI.getProducts.mockResolvedValue([
+        { id: 10, name: 'Target Product', category_id: 1, price_ht: 1, price_ttc: 1.2, tva_id: 1 },
+      ]);
+      mockElectronAPI.getTvaRates.mockResolvedValue(tvaRatesMock);
+
+      const wrapper = mount(App);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const product = wrapper.vm.products[0];
+      wrapper.vm.handleProductContextMenu({ clientX: 150, clientY: 250 }, product);
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.contextMenu.visible).toBe(true);
+      expect(wrapper.vm.contextMenu.targetProduct).toBe(product);
+
+      // Trigger deletion from context menu
+      mockElectronAPI.confirmDeleteProduct.mockResolvedValue(true);
+      mockElectronAPI.deleteProduct.mockResolvedValue(true);
+
+      await wrapper.vm.handleDeleteProductFromContextMenu();
+
+      expect(mockElectronAPI.confirmDeleteProduct).toHaveBeenCalledWith('Target Product');
+      expect(mockElectronAPI.deleteProduct).toHaveBeenCalledWith(10);
+    });
+
+    it('should emit delete event from ProductDetail and perform deletion', async () => {
+      mockElectronAPI.getCategories.mockResolvedValue(categoriesMock);
+      mockElectronAPI.getProducts.mockResolvedValue([
+        { id: 10, name: 'Target Product', category_id: 1, price_ht: 1, price_ttc: 1.2, tva_id: 1 },
+      ]);
+      mockElectronAPI.getTvaRates.mockResolvedValue(tvaRatesMock);
+
+      const wrapper = mount(App);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      wrapper.vm.focusedProduct = wrapper.vm.products[0];
+      await wrapper.vm.$nextTick();
+
+      // Trigger delete from ProductDetail
+      mockElectronAPI.confirmDeleteProduct.mockResolvedValue(true);
+      mockElectronAPI.deleteProduct.mockResolvedValue(true);
+
+      wrapper.vm.$refs.productDetail.$emit('delete');
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockElectronAPI.confirmDeleteProduct).toHaveBeenCalledWith('Target Product');
+      expect(mockElectronAPI.deleteProduct).toHaveBeenCalledWith(10);
+      expect(wrapper.vm.focusedProduct).toBeNull();
     });
   });
 });
