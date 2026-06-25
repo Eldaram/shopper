@@ -210,7 +210,7 @@ describe('Product Manual Creation & Edition Tests', () => {
         price_ht: 1.5,
         price_ttc: 1.8,
         image_path: 'media://soda.png',
-        updated_at: '2026-06-25 09:20:00'
+        updated_at: '2026-06-25 09:20:00',
       };
 
       const wrapper = mount(ProductDetail, {
@@ -267,16 +267,19 @@ describe('Product Manual Creation & Edition Tests', () => {
       await wrapper.vm.$nextTick();
 
       wrapper.vm.localProduct.name = 'Updated Soda';
-      
+
       mockElectronAPI.updateProduct.mockResolvedValue(true);
 
       await wrapper.vm.handleSave();
 
-      expect(mockElectronAPI.updateProduct).toHaveBeenCalledWith(42, expect.objectContaining({
-        name: 'Updated Soda',
-        category_id: 2,
-        price_ht: 1.5,
-      }));
+      expect(mockElectronAPI.updateProduct).toHaveBeenCalledWith(
+        42,
+        expect.objectContaining({
+          name: 'Updated Soda',
+          category_id: 2,
+          price_ht: 1.5,
+        })
+      );
       expect(wrapper.emitted('product-updated')).toBeTruthy();
       expect(wrapper.emitted('product-updated')[0][0]).toBe(42);
       expect(wrapper.vm.currentStateName).toBe('view');
@@ -332,7 +335,7 @@ describe('Product Manual Creation & Edition Tests', () => {
     it('should prompt when trying to select category and edition form is dirty, exiting if Abandonner', async () => {
       mockElectronAPI.getCategories.mockResolvedValue(categoriesMock);
       mockElectronAPI.getProducts.mockResolvedValue([
-        { id: 10, name: 'Old Product', category_id: 1, price_ht: 1, price_ttc: 1.2, tva_id: 1 }
+        { id: 10, name: 'Old Product', category_id: 1, price_ht: 1, price_ttc: 1.2, tva_id: 1 },
       ]);
       mockElectronAPI.getTvaRates.mockResolvedValue(tvaRatesMock);
 
@@ -359,7 +362,7 @@ describe('Product Manual Creation & Edition Tests', () => {
     it('should not change screen during edition if user decides to stay (cancel dialog)', async () => {
       mockElectronAPI.getCategories.mockResolvedValue(categoriesMock);
       mockElectronAPI.getProducts.mockResolvedValue([
-        { id: 10, name: 'Old Product', category_id: 1, price_ht: 1, price_ttc: 1.2, tva_id: 1 }
+        { id: 10, name: 'Old Product', category_id: 1, price_ht: 1, price_ttc: 1.2, tva_id: 1 },
       ]);
       mockElectronAPI.getTvaRates.mockResolvedValue(tvaRatesMock);
 
@@ -385,7 +388,7 @@ describe('Product Manual Creation & Edition Tests', () => {
     it('should enable/disable delete menu item when focusedProduct changes', async () => {
       mockElectronAPI.getCategories.mockResolvedValue(categoriesMock);
       mockElectronAPI.getProducts.mockResolvedValue([
-        { id: 10, name: 'Old Product', category_id: 1, price_ht: 1, price_ttc: 1.2, tva_id: 1 }
+        { id: 10, name: 'Old Product', category_id: 1, price_ht: 1, price_ttc: 1.2, tva_id: 1 },
       ]);
       mockElectronAPI.getTvaRates.mockResolvedValue(tvaRatesMock);
 
@@ -403,7 +406,7 @@ describe('Product Manual Creation & Edition Tests', () => {
     it('should display product context menu with delete option and invoke deleteProduct', async () => {
       mockElectronAPI.getCategories.mockResolvedValue(categoriesMock);
       mockElectronAPI.getProducts.mockResolvedValue([
-        { id: 10, name: 'Target Product', category_id: 1, price_ht: 1, price_ttc: 1.2, tva_id: 1 }
+        { id: 10, name: 'Target Product', category_id: 1, price_ht: 1, price_ttc: 1.2, tva_id: 1 },
       ]);
       mockElectronAPI.getTvaRates.mockResolvedValue(tvaRatesMock);
 
@@ -430,7 +433,7 @@ describe('Product Manual Creation & Edition Tests', () => {
     it('should emit delete event from ProductDetail and perform deletion', async () => {
       mockElectronAPI.getCategories.mockResolvedValue(categoriesMock);
       mockElectronAPI.getProducts.mockResolvedValue([
-        { id: 10, name: 'Target Product', category_id: 1, price_ht: 1, price_ttc: 1.2, tva_id: 1 }
+        { id: 10, name: 'Target Product', category_id: 1, price_ht: 1, price_ttc: 1.2, tva_id: 1 },
       ]);
       mockElectronAPI.getTvaRates.mockResolvedValue(tvaRatesMock);
 

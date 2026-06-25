@@ -93,7 +93,7 @@ class ProductController {
 
   delete(id) {
     if (!id) throw new Error('ID is required');
-    
+
     const existing = ProductModel.findById(id);
     if (existing && existing.image_path && existing.image_path.startsWith('media://')) {
       this._deleteImageFile(existing.image_path);

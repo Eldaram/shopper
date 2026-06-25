@@ -118,8 +118,10 @@
       <template v-else>
         <div class="context-menu-item" @click="handleCreateItemFromContextMenu">
           <span class="context-menu-icon">➕</span>
-          <span>Ajouter un article
-            {{ contextMenu.targetCategory ? `dans ${contextMenu.targetCategory.name}` : '' }}</span>
+          <span
+            >Ajouter un article
+            {{ contextMenu.targetCategory ? `dans ${contextMenu.targetCategory.name}` : '' }}</span
+          >
         </div>
       </template>
     </div>
@@ -325,7 +327,7 @@ export default {
         choice = await window.electronAPI.showExitConfirmationDialog();
       } else {
         const res = window.confirm(
-          "Vous avez des modifications non enregistrées. Voulez-vous abandonner vos modifications ?"
+          'Vous avez des modifications non enregistrées. Voulez-vous abandonner vos modifications ?'
         );
         choice = res ? 0 : 1; // 0 = Abandonner, 1 = Rester
       }
@@ -351,7 +353,7 @@ export default {
     },
     async handleProductUpdated(prodId) {
       await this.fetchData();
-      this.focusedProduct = this.products.find(p => p.id === prodId) || null;
+      this.focusedProduct = this.products.find((p) => p.id === prodId) || null;
     },
     handleFabClick() {
       this.openCreateProduct(this.selectedCategoryId);
@@ -433,7 +435,7 @@ export default {
             await window.electronAPI.deleteProduct(product.id);
           } else {
             console.log('Mock: Product deleted', product.id);
-            const idx = this.products.findIndex(p => p.id === product.id);
+            const idx = this.products.findIndex((p) => p.id === product.id);
             if (idx !== -1) {
               this.products.splice(idx, 1);
             }

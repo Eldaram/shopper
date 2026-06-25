@@ -173,7 +173,7 @@ describe('Shopper SQLite Database Integration', () => {
     it('should delete the old image file when image is changed or removed', () => {
       const mockUserData = path.join(__dirname, 'mock-user-data');
       const imgDir = path.join(mockUserData, 'product-images');
-      
+
       // Ensure test directory exists
       if (!fs.existsSync(imgDir)) {
         fs.mkdirSync(imgDir, { recursive: true });

@@ -21,7 +21,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   selectImage: () => ipcRenderer.invoke('select-image'),
   saveImage: (filePath) => ipcRenderer.invoke('save-image', filePath),
   showExitConfirmationDialog: () => ipcRenderer.invoke('show-exit-dialog'),
-  confirmDeleteProduct: (productName) => ipcRenderer.invoke('show-delete-confirm-dialog', productName),
+  confirmDeleteProduct: (productName) =>
+    ipcRenderer.invoke('show-delete-confirm-dialog', productName),
   setDeleteMenuEnabled: (enabled) => ipcRenderer.send('set-delete-menu-enabled', enabled),
   onMenuCreateProduct: (callback) =>
     ipcRenderer.on('menu-create-product', (_event, value) => callback(value)),

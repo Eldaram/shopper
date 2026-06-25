@@ -8,7 +8,10 @@
     <div class="detail-card">
       <div
         class="detail-image-sec"
-        :class="{ clickable: activeState && activeState.isImageClickable(), 'drag-over': isDragOver }"
+        :class="{
+          clickable: activeState && activeState.isImageClickable(),
+          'drag-over': isDragOver,
+        }"
         @click="handleImageClick"
         @dragover.prevent="handleDragOver"
         @dragenter.prevent="handleDragEnter"
@@ -146,7 +149,10 @@
             />
           </div>
 
-          <div v-if="activeState && !activeState.isCreateMode() && product && product.updated_at" class="form-group">
+          <div
+            v-if="activeState && !activeState.isCreateMode() && product && product.updated_at"
+            class="form-group"
+          >
             <label class="form-label">Dernière modification</label>
             <input
               type="text"
@@ -168,8 +174,12 @@
           <!-- Edit/Create mode buttons -->
           <template v-else-if="activeState">
             <BaseButton variant="secondary" @click="activeState.handleCancel()">Annuler</BaseButton>
-            <BaseButton v-if="!activeState.isCreateMode()" variant="danger" @click="$emit('delete')">Supprimer</BaseButton>
-            <BaseButton variant="primary" @click="activeState.handleSubmit()">Enregistrer</BaseButton>
+            <BaseButton v-if="!activeState.isCreateMode()" variant="danger" @click="$emit('delete')"
+              >Supprimer</BaseButton
+            >
+            <BaseButton variant="primary" @click="activeState.handleSubmit()"
+              >Enregistrer</BaseButton
+            >
           </template>
         </div>
       </div>
@@ -184,42 +194,76 @@ class ProductDetailState {
   constructor(vm) {
     this.vm = vm;
   }
-  isCreateMode() { return false; }
-  isEditMode() { return false; }
-  isViewMode() { return false; }
-  isEditable() { return false; }
-  isImageClickable() { return false; }
-  showDeleteImageButton() { return false; }
-  getBadgeText() { return ''; }
-  getTitle() { return ''; }
-  
+  isCreateMode() {
+    return false;
+  }
+  isEditMode() {
+    return false;
+  }
+  isViewMode() {
+    return false;
+  }
+  isEditable() {
+    return false;
+  }
+  isImageClickable() {
+    return false;
+  }
+  showDeleteImageButton() {
+    return false;
+  }
+  getBadgeText() {
+    return '';
+  }
+  getTitle() {
+    return '';
+  }
+
   handleEdit() {}
   handleCancel() {}
   handleSubmit() {}
 }
 
 class ViewState extends ProductDetailState {
-  isViewMode() { return true; }
-  getBadgeText() { return '🔍 Consultation'; }
-  getTitle() { return 'Détails du Produit'; }
-  
+  isViewMode() {
+    return true;
+  }
+  getBadgeText() {
+    return '🔍 Consultation';
+  }
+  getTitle() {
+    return 'Détails du Produit';
+  }
+
   handleEdit() {
     this.vm.transitionTo('edit');
   }
-  
+
   handleCancel() {
     this.vm.$emit('close');
   }
 }
 
 class EditState extends ProductDetailState {
-  isEditMode() { return true; }
-  isEditable() { return true; }
-  isImageClickable() { return true; }
-  showDeleteImageButton() { return true; }
-  getBadgeText() { return '✏️ Édition'; }
-  getTitle() { return 'Modifier le produit'; }
-  
+  isEditMode() {
+    return true;
+  }
+  isEditable() {
+    return true;
+  }
+  isImageClickable() {
+    return true;
+  }
+  showDeleteImageButton() {
+    return true;
+  }
+  getBadgeText() {
+    return '✏️ Édition';
+  }
+  getTitle() {
+    return 'Modifier le produit';
+  }
+
   async handleCancel() {
     if (this.vm.isFormDirty()) {
       const proceed = await this.vm.confirmDiscardChanges();
@@ -228,20 +272,32 @@ class EditState extends ProductDetailState {
     this.vm.initForm();
     this.vm.transitionTo('view');
   }
-  
+
   async handleSubmit() {
     await this.vm.handleSave();
   }
 }
 
 class CreateState extends ProductDetailState {
-  isCreateMode() { return true; }
-  isEditable() { return true; }
-  isImageClickable() { return true; }
-  showDeleteImageButton() { return true; }
-  getBadgeText() { return '➕ Création'; }
-  getTitle() { return 'Créer un produit'; }
-  
+  isCreateMode() {
+    return true;
+  }
+  isEditable() {
+    return true;
+  }
+  isImageClickable() {
+    return true;
+  }
+  showDeleteImageButton() {
+    return true;
+  }
+  getBadgeText() {
+    return '➕ Création';
+  }
+  getTitle() {
+    return 'Créer un produit';
+  }
+
   async handleCancel() {
     if (this.vm.isFormDirty()) {
       const proceed = await this.vm.confirmDiscardChanges();
@@ -249,7 +305,7 @@ class CreateState extends ProductDetailState {
     }
     this.vm.$emit('close');
   }
-  
+
   async handleSubmit() {
     await this.vm.handleSave();
   }
@@ -319,9 +375,10 @@ export default {
         : null;
     },
     initials() {
-      const name = (this.activeState && !this.activeState.isViewMode())
-        ? this.localProduct.name
-        : this.product?.name;
+      const name =
+        this.activeState && !this.activeState.isViewMode()
+          ? this.localProduct.name
+          : this.product?.name;
       if (!name) return '';
       return name
         .split(' ')
@@ -382,7 +439,12 @@ export default {
     },
     tvaRates: {
       handler(newRates) {
-        if (this.currentStateName === 'create' && !this.localProduct.tva_id && newRates && newRates.length > 0) {
+        if (
+          this.currentStateName === 'create' &&
+          !this.localProduct.tva_id &&
+          newRates &&
+          newRates.length > 0
+        ) {
           this.localProduct.tva_id = newRates[0].id;
         }
       },
@@ -629,12 +691,13 @@ export default {
           } else {
             console.log('Mock: Product updated', this.product.id, productData);
             // Fallback for browser mock mode
-            const idx = this.$parent.products.findIndex(p => p.id === this.product.id);
+            const idx = this.$parent.products.findIndex((p) => p.id === this.product.id);
             if (idx !== -1) {
               const updatedMockProduct = {
                 ...this.product,
                 ...productData,
-                category_name: this.categories.find(c => c.id === productData.category_id)?.name || ''
+                category_name:
+                  this.categories.find((c) => c.id === productData.category_id)?.name || '',
               };
               this.$parent.products.splice(idx, 1, updatedMockProduct);
             }
@@ -649,10 +712,15 @@ export default {
     },
     async confirmDiscardChanges() {
       let choice = 1; // Default to stay (1 is stay)
-      if (window.electronAPI && typeof window.electronAPI.showExitConfirmationDialog === 'function') {
+      if (
+        window.electronAPI &&
+        typeof window.electronAPI.showExitConfirmationDialog === 'function'
+      ) {
         choice = await window.electronAPI.showExitConfirmationDialog();
       } else {
-        const res = window.confirm("Vous avez des modifications non enregistrées. Voulez-vous abandonner vos modifications ?");
+        const res = window.confirm(
+          'Vous avez des modifications non enregistrées. Voulez-vous abandonner vos modifications ?'
+        );
         choice = res ? 0 : 1; // 0 = Abandonner, 1 = Rester
       }
       return choice === 0;
@@ -682,7 +750,7 @@ export default {
       } catch (e) {
         return dateStr;
       }
-    }
+    },
   },
 };
 </script>

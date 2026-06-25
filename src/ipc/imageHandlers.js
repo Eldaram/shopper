@@ -66,7 +66,7 @@ module.exports = {
       cancelId: 1,
       title: 'Suppression de produit',
       message: `Voulez-vous vraiment supprimer le produit "${productName}" ?`,
-      detail: 'Cette action est irréversible (le produit sera masqué de l\'inventaire).',
+      detail: "Cette action est irréversible (le produit sera masqué de l'inventaire).",
     });
     return result.response === 0;
   },
