@@ -41,6 +41,7 @@
             @close="handleCloseDetail"
             @product-created="handleProductCreated"
             @product-updated="handleProductUpdated"
+            @delete="deleteFocusedProduct"
           />
         </div>
 
@@ -83,6 +84,7 @@
                 :key="prod.id"
                 :product="prod"
                 @click="handleSelectProduct(prod)"
+                @contextmenu.prevent.stop="handleProductContextMenu($event, prod)"
               />
             </div>
 
@@ -107,11 +109,19 @@
       class="context-menu"
       :style="{ top: contextMenu.y + 'px', left: contextMenu.x + 'px' }"
     >
-      <div class="context-menu-item" @click="handleCreateItemFromContextMenu">
-        <span class="context-menu-icon">➕</span>
-        <span>Ajouter un article
-          {{ contextMenu.targetCategory ? `dans ${contextMenu.targetCategory.name}` : '' }}</span>
-      </div>
+      <template v-if="contextMenu.targetProduct">
+        <div class="context-menu-item" @click="handleDeleteProductFromContextMenu">
+          <span class="context-menu-icon">🗑️</span>
+          <span>Supprimer l'article</span>
+        </div>
+      </template>
+      <template v-else>
+        <div class="context-menu-item" @click="handleCreateItemFromContextMenu">
+          <span class="context-menu-icon">➕</span>
+          <span>Ajouter un article
+            {{ contextMenu.targetCategory ? `dans ${contextMenu.targetCategory.name}` : '' }}</span>
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -147,6 +157,7 @@ export default {
         x: 0,
         y: 0,
         targetCategory: null,
+        targetProduct: null,
       },
     };
   },
@@ -221,9 +232,29 @@ export default {
         this.openCreateProduct(this.selectedCategoryId);
       });
     }
+    if (window.electronAPI && typeof window.electronAPI.onMenuDeleteProduct === 'function') {
+      window.electronAPI.onMenuDeleteProduct(async () => {
+        if (this.focusedProduct) {
+          await this.deleteProduct(this.focusedProduct);
+        }
+      });
+    }
   },
   beforeUnmount() {
     window.removeEventListener('click', this.closeContextMenu);
+    if (window.electronAPI && typeof window.electronAPI.setDeleteMenuEnabled === 'function') {
+      window.electronAPI.setDeleteMenuEnabled(false);
+    }
+  },
+  watch: {
+    focusedProduct: {
+      handler(newVal) {
+        if (window.electronAPI && typeof window.electronAPI.setDeleteMenuEnabled === 'function') {
+          window.electronAPI.setDeleteMenuEnabled(newVal !== null);
+        }
+      },
+      immediate: true,
+    },
   },
   methods: {
     async fetchData() {
@@ -331,6 +362,16 @@ export default {
         x: event.clientX,
         y: event.clientY,
         targetCategory: category,
+        targetProduct: null,
+      };
+    },
+    handleProductContextMenu(event, product) {
+      this.contextMenu = {
+        visible: true,
+        x: event.clientX,
+        y: event.clientY,
+        targetCategory: null,
+        targetProduct: product,
       };
     },
     handleWorkspaceContextMenu(event) {
@@ -352,14 +393,60 @@ export default {
         x: event.clientX,
         y: event.clientY,
         targetCategory: currentCategory,
+        targetProduct: null,
       };
     },
     handleCreateItemFromContextMenu() {
       this.openCreateProduct(this.contextMenu.targetCategory?.id || null);
       this.closeContextMenu();
     },
+    async handleDeleteProductFromContextMenu() {
+      const product = this.contextMenu.targetProduct;
+      this.closeContextMenu();
+      if (product) {
+        await this.deleteProduct(product);
+      }
+    },
     closeContextMenu() {
       this.contextMenu.visible = false;
+      this.contextMenu.targetProduct = null;
+      this.contextMenu.targetCategory = null;
+    },
+    async deleteFocusedProduct() {
+      if (this.focusedProduct) {
+        await this.deleteProduct(this.focusedProduct);
+      }
+    },
+    async deleteProduct(product) {
+      if (!product) return;
+
+      let confirmed = false;
+      if (window.electronAPI && typeof window.electronAPI.confirmDeleteProduct === 'function') {
+        confirmed = await window.electronAPI.confirmDeleteProduct(product.name);
+      } else {
+        confirmed = window.confirm(`Voulez-vous vraiment supprimer le produit "${product.name}" ?`);
+      }
+
+      if (confirmed) {
+        try {
+          if (window.electronAPI && typeof window.electronAPI.deleteProduct === 'function') {
+            await window.electronAPI.deleteProduct(product.id);
+          } else {
+            console.log('Mock: Product deleted', product.id);
+            const idx = this.products.findIndex(p => p.id === product.id);
+            if (idx !== -1) {
+              this.products.splice(idx, 1);
+            }
+          }
+          if (this.focusedProduct && this.focusedProduct.id === product.id) {
+            this.focusedProduct = null;
+          }
+          await this.fetchData();
+        } catch (err) {
+          console.error('Error deleting product:', err);
+          alert(`Erreur lors de la suppression: ${err.message}`);
+        }
+      }
     },
     loadBrowserMocks() {
       this.categories = [

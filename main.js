@@ -110,6 +110,10 @@ function initializeApp() {
     // Register IPC handlers
     bindHandlers(ipcMain, [categoryHandlers, productHandlers, tvaHandlers, imageHandlers]);
 
+    ipcMain.on('set-delete-menu-enabled', (event, enabled) => {
+      MenuService.setDeleteProductEnabled(enabled);
+    });
+
     createWindow();
 
     app.on('activate', () => {

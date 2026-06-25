@@ -40,6 +40,7 @@ module.exports = {
       ipcMainInstance = {
         handle: vi.fn(),
         removeHandler: vi.fn(),
+        on: vi.fn(),
       };
     }
     return ipcMainInstance;

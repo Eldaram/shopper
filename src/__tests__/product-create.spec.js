@@ -11,10 +11,14 @@ const mockElectronAPI = {
   getTvaRates: vi.fn(),
   createProduct: vi.fn(),
   updateProduct: vi.fn(),
+  deleteProduct: vi.fn(),
   selectImage: vi.fn(),
   saveImage: vi.fn(),
   showExitConfirmationDialog: vi.fn(),
+  confirmDeleteProduct: vi.fn(),
+  setDeleteMenuEnabled: vi.fn(),
   onMenuCreateProduct: vi.fn(),
+  onMenuDeleteProduct: vi.fn(),
 };
 
 globalThis.window = globalThis.window || {};
@@ -376,6 +380,76 @@ describe('Product Manual Creation & Edition Tests', () => {
 
       expect(wrapper.vm.focusedProduct).not.toBeNull();
       expect(wrapper.vm.focusedProduct.id).toBe(10);
+    });
+
+    it('should enable/disable delete menu item when focusedProduct changes', async () => {
+      mockElectronAPI.getCategories.mockResolvedValue(categoriesMock);
+      mockElectronAPI.getProducts.mockResolvedValue([
+        { id: 10, name: 'Old Product', category_id: 1, price_ht: 1, price_ttc: 1.2, tva_id: 1 }
+      ]);
+      mockElectronAPI.getTvaRates.mockResolvedValue(tvaRatesMock);
+
+      const wrapper = mount(App);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockElectronAPI.setDeleteMenuEnabled).toHaveBeenCalledWith(false);
+
+      wrapper.vm.focusedProduct = wrapper.vm.products[0];
+      await wrapper.vm.$nextTick();
+
+      expect(mockElectronAPI.setDeleteMenuEnabled).toHaveBeenCalledWith(true);
+    });
+
+    it('should display product context menu with delete option and invoke deleteProduct', async () => {
+      mockElectronAPI.getCategories.mockResolvedValue(categoriesMock);
+      mockElectronAPI.getProducts.mockResolvedValue([
+        { id: 10, name: 'Target Product', category_id: 1, price_ht: 1, price_ttc: 1.2, tva_id: 1 }
+      ]);
+      mockElectronAPI.getTvaRates.mockResolvedValue(tvaRatesMock);
+
+      const wrapper = mount(App);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const product = wrapper.vm.products[0];
+      wrapper.vm.handleProductContextMenu({ clientX: 150, clientY: 250 }, product);
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.contextMenu.visible).toBe(true);
+      expect(wrapper.vm.contextMenu.targetProduct).toBe(product);
+
+      // Trigger deletion from context menu
+      mockElectronAPI.confirmDeleteProduct.mockResolvedValue(true);
+      mockElectronAPI.deleteProduct.mockResolvedValue(true);
+
+      await wrapper.vm.handleDeleteProductFromContextMenu();
+
+      expect(mockElectronAPI.confirmDeleteProduct).toHaveBeenCalledWith('Target Product');
+      expect(mockElectronAPI.deleteProduct).toHaveBeenCalledWith(10);
+    });
+
+    it('should emit delete event from ProductDetail and perform deletion', async () => {
+      mockElectronAPI.getCategories.mockResolvedValue(categoriesMock);
+      mockElectronAPI.getProducts.mockResolvedValue([
+        { id: 10, name: 'Target Product', category_id: 1, price_ht: 1, price_ttc: 1.2, tva_id: 1 }
+      ]);
+      mockElectronAPI.getTvaRates.mockResolvedValue(tvaRatesMock);
+
+      const wrapper = mount(App);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      wrapper.vm.focusedProduct = wrapper.vm.products[0];
+      await wrapper.vm.$nextTick();
+
+      // Trigger delete from ProductDetail
+      mockElectronAPI.confirmDeleteProduct.mockResolvedValue(true);
+      mockElectronAPI.deleteProduct.mockResolvedValue(true);
+
+      wrapper.vm.$refs.productDetail.$emit('delete');
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockElectronAPI.confirmDeleteProduct).toHaveBeenCalledWith('Target Product');
+      expect(mockElectronAPI.deleteProduct).toHaveBeenCalledWith(10);
+      expect(wrapper.vm.focusedProduct).toBeNull();
     });
   });
 });

@@ -160,18 +160,16 @@
         <div class="detail-actions">
           <!-- View mode buttons -->
           <template v-if="activeState && activeState.isViewMode()">
-            <button class="btn-secondary active-btn" @click="activeState.handleEdit()">Modifier</button>
-            <button class="btn-primary" disabled>Enregistrer</button>
+            <BaseButton variant="secondary" @click="activeState.handleEdit()">Modifier</BaseButton>
+            <BaseButton variant="danger" @click="$emit('delete')">Supprimer</BaseButton>
+            <BaseButton variant="primary" :disabled="true">Enregistrer</BaseButton>
           </template>
 
           <!-- Edit/Create mode buttons -->
           <template v-else-if="activeState">
-            <button class="btn-secondary active-btn" @click="activeState.handleCancel()">
-              Annuler
-            </button>
-            <button class="btn-primary active-btn" @click="activeState.handleSubmit()">
-              Enregistrer
-            </button>
+            <BaseButton variant="secondary" @click="activeState.handleCancel()">Annuler</BaseButton>
+            <BaseButton v-if="!activeState.isCreateMode()" variant="danger" @click="$emit('delete')">Supprimer</BaseButton>
+            <BaseButton variant="primary" @click="activeState.handleSubmit()">Enregistrer</BaseButton>
           </template>
         </div>
       </div>
@@ -180,6 +178,8 @@
 </template>
 
 <script>
+import BaseButton from './BaseButton.vue';
+
 class ProductDetailState {
   constructor(vm) {
     this.vm = vm;
@@ -257,6 +257,9 @@ class CreateState extends ProductDetailState {
 
 export default {
   name: 'ProductDetail',
+  components: {
+    BaseButton,
+  },
   props: {
     product: {
       type: Object,
@@ -279,7 +282,7 @@ export default {
       required: true,
     },
   },
-  emits: ['close', 'product-created', 'product-updated'],
+  emits: ['close', 'product-created', 'product-updated', 'delete'],
   data() {
     return {
       isDragOver: false,
