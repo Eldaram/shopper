@@ -341,7 +341,10 @@ describe('Shopper SQLite Database Integration', () => {
       const deliveries = DeliveryOrderController.getAll();
       expect(deliveries.length).toBeGreaterThanOrEqual(1);
 
-      const del = deliveries[0];
+      const del = deliveries.find(
+        (d) => d.delivery_address && d.delivery_address.includes('Paris')
+      );
+      expect(del).toBeDefined();
       expect(del.status).toBe('en_cours');
 
       // Update status
