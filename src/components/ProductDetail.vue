@@ -166,7 +166,7 @@
         <div class="detail-actions">
           <!-- View mode buttons -->
           <template v-if="activeState && activeState.isViewMode()">
-            <BaseButton variant="success" @click="$emit('add-to-basket', product)"
+            <BaseButton variant="success" @click="addToBasket(product)"
               >Ajouter au panier</BaseButton
             >
             <BaseButton variant="secondary" @click="activeState.handleEdit()">Modifier</BaseButton>
@@ -192,6 +192,7 @@
 
 <script>
 import BaseButton from './BaseButton.vue';
+import { addToBasket } from '../utils/basketStore';
 
 class ProductDetailState {
   constructor(vm) {
@@ -341,7 +342,7 @@ export default {
       required: true,
     },
   },
-  emits: ['close', 'product-created', 'product-updated', 'delete', 'add-to-basket'],
+  emits: ['close', 'product-created', 'product-updated', 'delete'],
   data() {
     return {
       isDragOver: false,
@@ -602,6 +603,7 @@ export default {
         console.error('Error selecting image:', err);
       }
     },
+    addToBasket,
     handleImageError() {
       this.imageLoadError = true;
     },

@@ -8,14 +8,18 @@
           {{ totalItems }} {{ totalItems > 1 ? 'articles' : 'article' }}
         </span>
       </h1>
-      <button v-if="basket.length > 0" class="btn-clear-basket" @click="$emit('clear-basket')">
+      <button
+        v-if="basketState.items.length > 0"
+        class="btn-clear-basket"
+        @click="confirmAndClearBasket"
+      >
         <span class="clear-icon">🗑️</span>
         <span>Vider le panier</span>
       </button>
     </div>
 
     <!-- Empty State -->
-    <div v-if="basket.length === 0" class="basket-empty-state">
+    <div v-if="basketState.items.length === 0" class="basket-empty-state">
       <span class="empty-cart-icon">🛒</span>
       <h2>Le panier est vide</h2>
       <p>Ajoutez des articles depuis le catalogue pour commencer une vente.</p>
@@ -40,7 +44,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in basket" :key="item.product.id" class="basket-row">
+            <tr v-for="item in basketState.items" :key="item.product.id" class="basket-row">
               <td class="col-img">
                 <div class="basket-img-container">
                   <img
@@ -92,7 +96,7 @@
               <td class="col-actions">
                 <button
                   class="btn-remove-item"
-                  @click="$emit('remove-item', item.product.id)"
+                  @click="handleRemoveBasketItem(item.product.id)"
                   title="Supprimer l'article"
                 >
                   🗑️
@@ -119,9 +123,7 @@
             <span>Montant total (TTC) :</span>
             <span class="summary-total-price">{{ formatPrice(totalTtc) }}</span>
           </div>
-          <button class="btn-validate-sale" @click="$emit('validate-sale')">
-            Valider la vente
-          </button>
+          <button class="btn-validate-sale" @click="handleValidateSale">Valider la vente</button>
         </div>
       </div>
     </div>
@@ -129,25 +131,34 @@
 </template>
 
 <script>
+import {
+  basketState,
+  handleUpdateBasketQuantity,
+  handleRemoveBasketItem,
+  confirmAndClearBasket,
+  handleValidateSale,
+} from '../utils/basketStore';
+
 export default {
   name: 'BasketView',
   props: {
-    basket: {
-      type: Array,
-      required: true,
-    },
     tvaRates: {
       type: Array,
       required: true,
     },
   },
-  emits: ['close', 'update-quantity', 'remove-item', 'clear-basket', 'validate-sale'],
+  emits: ['close'],
+  data() {
+    return {
+      basketState,
+    };
+  },
   computed: {
     totalItems() {
-      return this.basket.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
+      return this.basketState.items.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
     },
     totalTtc() {
-      return this.basket.reduce(
+      return this.basketState.items.reduce(
         (sum, item) =>
           sum + (parseFloat(item.product.price_ttc) || 0) * (parseInt(item.quantity) || 0),
         0
@@ -178,12 +189,12 @@ export default {
     decrementQty(item) {
       if (item.quantity > 1) {
         const newQty = (parseInt(item.quantity, 10) || 1) - 1;
-        this.$emit('update-quantity', item.product.id, newQty);
+        handleUpdateBasketQuantity(item.product.id, newQty);
       }
     },
     incrementQty(item) {
       const newQty = (parseInt(item.quantity, 10) || 0) + 1;
-      this.$emit('update-quantity', item.product.id, newQty);
+      handleUpdateBasketQuantity(item.product.id, newQty);
     },
     validateQty(item) {
       if (item.quantity !== '') {
@@ -194,7 +205,7 @@ export default {
           item.quantity = val;
         }
       }
-      this.$emit('update-quantity', item.product.id, item.quantity);
+      handleUpdateBasketQuantity(item.product.id, item.quantity);
     },
     validateQtyChange(item) {
       const val = parseInt(item.quantity, 10);
@@ -203,7 +214,7 @@ export default {
       } else {
         item.quantity = val;
       }
-      this.$emit('update-quantity', item.product.id, item.quantity);
+      handleUpdateBasketQuantity(item.product.id, item.quantity);
     },
     handleImageError(e, product) {
       e.target.style.display = 'none';
@@ -212,6 +223,9 @@ export default {
       placeholder.innerText = this.initials(product);
       e.target.parentNode.appendChild(placeholder);
     },
+    confirmAndClearBasket,
+    handleRemoveBasketItem,
+    handleValidateSale,
   },
 };
 </script>

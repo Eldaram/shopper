@@ -2,7 +2,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import BasketView from '../components/BasketView.vue';
-import App from '../App.vue';
+import {
+  basketState,
+  addToBasket,
+  handleUpdateBasketQuantity,
+  handleRemoveBasketItem,
+  clearBasket,
+} from '../utils/basketStore';
 
 // Mock electron API globally
 const mockElectronAPI = {
@@ -44,138 +50,73 @@ describe('Shopping Basket Tests', () => {
   };
 
   beforeEach(() => {
+    clearBasket();
     vi.clearAllMocks();
     mockElectronAPI.getCategories.mockResolvedValue([]);
     mockElectronAPI.getProducts.mockResolvedValue([]);
     mockElectronAPI.getTvaRates.mockResolvedValue([]);
   });
 
-  describe('App.vue Basket Actions', () => {
+  describe('basketStore.js Actions', () => {
     it('should add new product to basket', () => {
-      const wrapper = mount(App, {
-        global: {
-          stubs: {
-            Sidebar: true,
-            Breadcrumbs: true,
-            CategoryCard: true,
-            ProductCard: true,
-            ProductDetail: true,
-            BasketView: true,
-          },
-        },
-      });
+      expect(basketState.items).toEqual([]);
 
-      expect(wrapper.vm.basket).toEqual([]);
-
-      wrapper.vm.addToBasket(product1);
-      expect(wrapper.vm.basket.length).toBe(1);
-      expect(wrapper.vm.basket[0].product.id).toBe(1);
-      expect(wrapper.vm.basket[0].quantity).toBe(1);
+      addToBasket(product1);
+      expect(basketState.items.length).toBe(1);
+      expect(basketState.items[0].product.id).toBe(1);
+      expect(basketState.items[0].quantity).toBe(1);
       expect(mockElectronAPI.setClearBasketEnabled).toHaveBeenCalledWith(true);
     });
 
     it('should increment quantity when product is added multiple times', () => {
-      const wrapper = mount(App, {
-        global: {
-          stubs: {
-            Sidebar: true,
-            Breadcrumbs: true,
-            CategoryCard: true,
-            ProductCard: true,
-            ProductDetail: true,
-            BasketView: true,
-          },
-        },
-      });
+      addToBasket(product1);
+      addToBasket(product1);
 
-      wrapper.vm.addToBasket(product1);
-      wrapper.vm.addToBasket(product1);
-
-      expect(wrapper.vm.basket.length).toBe(1);
-      expect(wrapper.vm.basket[0].product.id).toBe(1);
-      expect(wrapper.vm.basket[0].quantity).toBe(2);
+      expect(basketState.items.length).toBe(1);
+      expect(basketState.items[0].product.id).toBe(1);
+      expect(basketState.items[0].quantity).toBe(2);
     });
 
     it('should update quantity of an item in the basket', () => {
-      const wrapper = mount(App, {
-        global: {
-          stubs: {
-            Sidebar: true,
-            Breadcrumbs: true,
-            CategoryCard: true,
-            ProductCard: true,
-            ProductDetail: true,
-            BasketView: true,
-          },
-        },
-      });
+      addToBasket(product1);
+      handleUpdateBasketQuantity(product1.id, 5);
 
-      wrapper.vm.addToBasket(product1);
-      wrapper.vm.handleUpdateBasketQuantity(product1.id, 5);
-
-      expect(wrapper.vm.basket[0].quantity).toBe(5);
+      expect(basketState.items[0].quantity).toBe(5);
     });
 
     it('should remove a product from the basket and disable clear menu item when empty', () => {
-      const wrapper = mount(App, {
-        global: {
-          stubs: {
-            Sidebar: true,
-            Breadcrumbs: true,
-            CategoryCard: true,
-            ProductCard: true,
-            ProductDetail: true,
-            BasketView: true,
-          },
-        },
-      });
+      addToBasket(product1);
+      addToBasket(product2);
+      expect(basketState.items.length).toBe(2);
 
-      wrapper.vm.addToBasket(product1);
-      wrapper.vm.addToBasket(product2);
-      expect(wrapper.vm.basket.length).toBe(2);
+      handleRemoveBasketItem(product1.id);
+      expect(basketState.items.length).toBe(1);
+      expect(basketState.items[0].product.id).toBe(product2.id);
 
-      wrapper.vm.handleRemoveBasketItem(product1.id);
-      expect(wrapper.vm.basket.length).toBe(1);
-      expect(wrapper.vm.basket[0].product.id).toBe(product2.id);
-
-      wrapper.vm.handleRemoveBasketItem(product2.id);
-      expect(wrapper.vm.basket.length).toBe(0);
+      handleRemoveBasketItem(product2.id);
+      expect(basketState.items.length).toBe(0);
       expect(mockElectronAPI.setClearBasketEnabled).toHaveBeenLastCalledWith(false);
     });
 
     it('should clear all items in the basket', () => {
-      const wrapper = mount(App, {
-        global: {
-          stubs: {
-            Sidebar: true,
-            Breadcrumbs: true,
-            CategoryCard: true,
-            ProductCard: true,
-            ProductDetail: true,
-            BasketView: true,
-          },
-        },
-      });
+      addToBasket(product1);
+      addToBasket(product2);
 
-      wrapper.vm.addToBasket(product1);
-      wrapper.vm.addToBasket(product2);
-
-      wrapper.vm.clearBasket();
-      expect(wrapper.vm.basket).toEqual([]);
+      clearBasket();
+      expect(basketState.items).toEqual([]);
       expect(mockElectronAPI.setClearBasketEnabled).toHaveBeenLastCalledWith(false);
     });
   });
 
   describe('BasketView.vue Component', () => {
     it('should compute totals correctly', () => {
-      const basket = [
+      basketState.items = [
         { product: product1, quantity: 2 }, // 2 * 1.8 = 3.6
         { product: product2, quantity: 3 }, // 3 * 1.5 = 4.5
       ];
 
       const wrapper = mount(BasketView, {
         props: {
-          basket,
           tvaRates: tvaRatesMock,
         },
       });
@@ -184,25 +125,33 @@ describe('Shopping Basket Tests', () => {
       expect(wrapper.vm.totalTtc).toBeCloseTo(8.1); // 3.6 + 4.5 = 8.1
     });
 
-    it('should emit appropriate events', async () => {
-      const basket = [{ product: product1, quantity: 2 }];
+    it('should emit close event and call remove method', async () => {
+      basketState.items = [{ product: product1, quantity: 2 }];
+
       const wrapper = mount(BasketView, {
         props: {
-          basket,
           tvaRates: tvaRatesMock,
         },
       });
 
-      // Trigger clear basket click
-      const clearBtn = wrapper.find('.btn-clear-basket');
-      await clearBtn.trigger('click');
-      expect(wrapper.emitted('clear-basket')).toBeTruthy();
-
-      // Trigger single item removal
+      // Trigger single item removal click
       const removeBtn = wrapper.find('.btn-remove-item');
       await removeBtn.trigger('click');
-      expect(wrapper.emitted('remove-item')).toBeTruthy();
-      expect(wrapper.emitted('remove-item')[0]).toEqual([product1.id]);
+      expect(basketState.items.length).toBe(0);
+    });
+
+    it('should emit close event when back to catalog is clicked', async () => {
+      basketState.items = []; // Empty state
+
+      const wrapper = mount(BasketView, {
+        props: {
+          tvaRates: tvaRatesMock,
+        },
+      });
+
+      const backBtn = wrapper.find('.btn-back-catalog');
+      await backBtn.trigger('click');
+      expect(wrapper.emitted('close')).toBeTruthy();
     });
   });
 });

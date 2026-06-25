@@ -13,6 +13,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 contextBridge.exposeInMainWorld('electronAPI', {
   getCategories: () => ipcRenderer.invoke('get-categories'),
+  getSubcategories: (parentId) => ipcRenderer.invoke('get-subcategories', parentId),
   getProducts: () => ipcRenderer.invoke('get-products'),
   getTvaRates: () => ipcRenderer.invoke('get-tva-rates'),
   createProduct: (data) => ipcRenderer.invoke('create-product', data),

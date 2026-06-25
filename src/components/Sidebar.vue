@@ -14,7 +14,7 @@
         <ul class="nav-list">
           <li
             class="nav-item"
-            :class="{ active: !isViewingBasket && selectedCategoryId === null }"
+            :class="{ active: !basketState.isViewing && selectedCategoryId === null }"
             @click="$emit('select-category', null)"
             @contextmenu.prevent="$emit('contextmenu-category', $event, null)"
           >
@@ -27,7 +27,7 @@
             class="nav-item"
             :class="{
               active:
-                !isViewingBasket &&
+                !basketState.isViewing &&
                 (category.id === selectedCategoryId || category.id === activeAncestorId),
             }"
             @click="$emit('select-category', category.id)"
@@ -43,6 +43,8 @@
 </template>
 
 <script>
+import { basketState } from '../utils/basketStore';
+
 export default {
   name: 'Sidebar',
   props: {
@@ -62,12 +64,13 @@ export default {
       type: [Number, null],
       default: null,
     },
-    isViewingBasket: {
-      type: Boolean,
-      default: false,
-    },
   },
   emits: ['select-category', 'contextmenu-category'],
+  data() {
+    return {
+      basketState,
+    };
+  },
   computed: {
     mainCategories() {
       return this.categories.filter((c) => c.parent_id === null);
