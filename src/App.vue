@@ -6,8 +6,10 @@
       :products="products"
       :selected-category-id="selectedCategoryId"
       :active-ancestor-id="activeAncestorId"
+      :is-viewing-dashboard="isViewingDashboard"
       @select-category="handleSelectCategory"
       @contextmenu-category="handleCategoryContextMenu"
+      @select-dashboard="handleSelectDashboard"
     />
 
     <!-- Main Workspace -->
@@ -19,12 +21,19 @@
           :selected-category-id="selectedCategoryId"
           :focused-product="focusedProduct"
           :is-creating-product="isCreatingProduct"
+          :is-viewing-dashboard="isViewingDashboard"
+          :readonly-ticket="readonlyTicket"
           @select-category="handleSelectCategory"
+          @select-dashboard="handleSelectDashboard"
         />
 
         <div class="topbar-right">
-          <!-- Search Bar (Visible only when not viewing product details, creation, or basket) -->
-          <SearchBar v-if="!focusedProduct && !isCreatingProduct && !basketState.isViewing" />
+          <!-- Search Bar (Visible only when not viewing product details, creation, dashboard or basket) -->
+          <SearchBar
+            v-if="
+              !focusedProduct && !isCreatingProduct && !basketState.isViewing && !isViewingDashboard
+            "
+          />
 
           <!-- Offline Indicator -->
           <span
@@ -47,7 +56,15 @@
       <div class="content-area" @contextmenu="handleWorkspaceContextMenu">
         <!-- Transition between basket view, grid view and details/creation view -->
         <div v-if="basketState.isViewing">
-          <BasketView :tva-rates="tvaRates" @close="handleCloseBasket" />
+          <BasketView
+            :tva-rates="tvaRates"
+            :readonly-ticket="readonlyTicket"
+            @close="handleCloseBasket"
+          />
+        </div>
+
+        <div v-else-if="isViewingDashboard">
+          <DashboardView @view-ticket="handleViewTicket" />
         </div>
 
         <div v-else-if="focusedProduct || isCreatingProduct">
@@ -79,9 +96,9 @@
       </div>
     </main>
 
-    <!-- Floating Action Button (FAB) for fast item creation (hidden on basket page) -->
+    <!-- Floating Action Button (FAB) for fast item creation (hidden on basket/dashboard pages) -->
     <button
-      v-if="!basketState.isViewing"
+      v-if="!basketState.isViewing && !isViewingDashboard"
       class="fab-btn"
       @click="handleFabClick"
       title="Créer un article"
@@ -105,6 +122,7 @@ import Breadcrumbs from './components/Breadcrumbs.vue';
 import ProductDetail from './components/ProductDetail.vue';
 import BasketView from './components/BasketView.vue';
 import CatalogueView from './components/CatalogueView.vue';
+import DashboardView from './components/DashboardView.vue';
 import SearchBar from './components/SearchBar.vue';
 import BasketHeaderButton from './components/BasketHeaderButton.vue';
 import ContextMenu from './components/ContextMenu.vue';
@@ -121,6 +139,7 @@ export default {
     ProductDetail,
     BasketView,
     CatalogueView,
+    DashboardView,
     SearchBar,
     BasketHeaderButton,
     ContextMenu,
@@ -137,6 +156,8 @@ export default {
       preselectedCategoryId: null,
       basketState,
       isOffline: !navigator.onLine,
+      isViewingDashboard: false,
+      readonlyTicket: null,
     };
   },
   computed: {
@@ -240,6 +261,8 @@ export default {
       }
       const proceed = await this.confirmExitCreateMode();
       if (!proceed) return;
+      this.isViewingDashboard = false;
+      this.readonlyTicket = null;
       this.selectedCategoryId = catId;
       this.focusedProduct = null;
     },
@@ -249,12 +272,16 @@ export default {
       }
       const proceed = await this.confirmExitCreateMode();
       if (!proceed) return;
+      this.isViewingDashboard = false;
+      this.readonlyTicket = null;
       this.focusedProduct = prod;
     },
     openCreateProduct(categoryId = null) {
       if (this.basketState.isViewing) {
         this.basketState.isViewing = false;
       }
+      this.isViewingDashboard = false;
+      this.readonlyTicket = null;
       this.preselectedCategoryId = categoryId;
       this.isCreatingProduct = true;
       this.focusedProduct = null;
@@ -317,10 +344,30 @@ export default {
       if (this.basketState.isViewing) {
         this.focusedProduct = null;
         this.isCreatingProduct = false;
+        this.isViewingDashboard = false;
+        this.readonlyTicket = null;
       }
     },
     handleCloseBasket() {
+      if (this.readonlyTicket) {
+        this.readonlyTicket = null;
+        this.isViewingDashboard = true;
+      }
       this.basketState.isViewing = false;
+    },
+    async handleSelectDashboard() {
+      const proceed = await this.confirmExitCreateMode();
+      if (!proceed) return;
+      this.basketState.isViewing = false;
+      this.focusedProduct = null;
+      this.readonlyTicket = null;
+      this.selectedCategoryId = null;
+      this.isViewingDashboard = true;
+    },
+    handleViewTicket(ticket) {
+      this.readonlyTicket = ticket;
+      this.basketState.isViewing = true;
+      this.isViewingDashboard = false;
     },
     handleCategoryContextMenu(event, category) {
       if (this.$refs.contextMenu) {
@@ -333,6 +380,7 @@ export default {
       }
     },
     handleWorkspaceContextMenu(event) {
+      if (this.isViewingDashboard || this.readonlyTicket) return;
       if (this.$refs.contextMenu) {
         this.$refs.contextMenu.showForWorkspace(event, this.selectedCategoryId, this.categories);
       }

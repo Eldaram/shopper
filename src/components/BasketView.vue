@@ -3,13 +3,14 @@
     <div class="basket-header">
       <h1 class="basket-title">
         <span class="basket-title-icon">🛒</span>
-        <span>{{ $t('basket') }}</span>
+        <span>{{ readonlyTicket ? $t('read_only_basket') : $t('basket') }}</span>
+        <span v-if="readonlyTicket" class="basket-ticket-id"> #{{ readonlyTicket.id }}</span>
         <span class="basket-badge">
           {{ totalItems }} {{ totalItems > 1 ? $t('items') : $t('item') }}
         </span>
       </h1>
       <button
-        v-if="basketState.items.length > 0"
+        v-if="basketState.items.length > 0 && !readonlyTicket"
         class="btn-clear-basket"
         @click="confirmAndClearBasket"
       >
@@ -19,7 +20,7 @@
     </div>
 
     <!-- Empty State -->
-    <div v-if="basketState.items.length === 0" class="basket-empty-state">
+    <div v-if="displayItems.length === 0" class="basket-empty-state">
       <span class="empty-cart-icon">🛒</span>
       <h2>{{ $t('basket_empty_title') }}</h2>
       <p>{{ $t('basket_empty_desc') }}</p>
@@ -40,11 +41,11 @@
               <th>{{ $t('unit_price_ttc') }}</th>
               <th>{{ $t('quantity') }}</th>
               <th>{{ $t('total_ttc') }}</th>
-              <th>{{ $t('action') }}</th>
+              <th v-if="!readonlyTicket">{{ $t('action') }}</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in basketState.items" :key="item.product.id" class="basket-row">
+            <tr v-for="item in displayItems" :key="item.product.id" class="basket-row">
               <td class="col-img">
                 <div class="basket-img-container">
                   <img
@@ -64,13 +65,14 @@
                 <div class="basket-item-barcode">{{ item.product.barcode }}</div>
               </td>
               <td class="col-tax">
-                <span class="tax-badge">{{ getTaxLabel(item.product) }}</span>
+                <span class="tax-badge">{{ getTaxLabel(item) }}</span>
               </td>
               <td class="col-price-unit">
                 {{ formatPrice(item.product.price_ttc) }}
               </td>
               <td class="col-qty">
-                <div class="qty-stepper">
+                <div v-if="readonlyTicket" class="qty-readonly">x {{ item.quantity }}</div>
+                <div v-else class="qty-stepper">
                   <button
                     class="qty-btn minus"
                     :disabled="item.quantity <= 1"
@@ -93,7 +95,7 @@
               <td class="col-price-total">
                 {{ formatPrice(item.product.price_ttc * item.quantity) }}
               </td>
-              <td class="col-actions">
+              <td v-if="!readonlyTicket" class="col-actions">
                 <button
                   class="btn-remove-item"
                   @click="handleRemoveBasketItem(item.product.id)"
@@ -111,7 +113,7 @@
       <div class="basket-footer">
         <div class="basket-footer-left">
           <button class="btn-back-catalog-link" @click="$emit('close')">
-            ← {{ $t('back_to_explorer') }}
+            ← {{ readonlyTicket ? $t('dashboard') : $t('back_to_explorer') }}
           </button>
         </div>
         <div class="basket-summary-card">
@@ -123,9 +125,12 @@
             <span>{{ $t('total_amount_ttc') }}</span>
             <span class="summary-total-price">{{ formatPrice(totalTtc) }}</span>
           </div>
-          <button class="btn-validate-sale" @click="handleValidateSale">
+          <button v-if="!readonlyTicket" class="btn-validate-sale" @click="handleValidateSale">
             {{ $t('validate_sale') }}
           </button>
+          <div v-else class="receipt-footer-stamp">
+            {{ $t('date') }}: {{ formatDate(readonlyTicket.created_at) }}
+          </div>
         </div>
       </div>
     </div>
@@ -148,6 +153,10 @@ export default {
       type: Array,
       required: true,
     },
+    readonlyTicket: {
+      type: Object,
+      default: null,
+    },
   },
   emits: ['close'],
   data() {
@@ -156,11 +165,33 @@ export default {
     };
   },
   computed: {
+    displayItems() {
+      if (this.readonlyTicket) {
+        return this.readonlyTicket.lines.map((line) => ({
+          product: {
+            id: line.product_id,
+            name: line.product_name || `Product #${line.product_id}`,
+            barcode: line.product_barcode || '',
+            image_path: line.product_image_path,
+            image_url_openfoodfacts: line.product_image_url,
+            tva_id: null,
+            price_ttc: line.final_unit_price_ttc,
+          },
+          quantity: line.quantity,
+          applied_tva_rate: line.applied_tva_rate,
+          isReadonly: true,
+        }));
+      }
+      return this.basketState.items;
+    },
     totalItems() {
-      return this.basketState.items.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
+      return this.displayItems.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
     },
     totalTtc() {
-      return this.basketState.items.reduce(
+      if (this.readonlyTicket) {
+        return this.readonlyTicket.total_amount_ttc;
+      }
+      return this.displayItems.reduce(
         (sum, item) =>
           sum + (parseFloat(item.product.price_ttc) || 0) * (parseInt(item.quantity) || 0),
         0
@@ -185,8 +216,11 @@ export default {
       const locale = this.$currentLang === 'fr' ? 'fr-FR' : 'en-GB';
       return new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(price);
     },
-    getTaxLabel(product) {
-      const rate = this.tvaRates.find((r) => r.id === product.tva_id);
+    getTaxLabel(item) {
+      if (item.applied_tva_rate !== undefined) {
+        return `TVA (${item.applied_tva_rate}%)`;
+      }
+      const rate = this.tvaRates.find((r) => r.id === item.product.tva_id);
       return rate ? `${rate.name} (${rate.rate}%)` : 'TVA 0%';
     },
     decrementQty(item) {
@@ -225,6 +259,25 @@ export default {
       placeholder.className = 'basket-img-placeholder';
       placeholder.innerText = this.initials(product);
       e.target.parentNode.appendChild(placeholder);
+    },
+    formatDate(dateStr) {
+      if (!dateStr) return '';
+      try {
+        const locale = this.$currentLang === 'fr' ? 'fr-FR' : 'en-GB';
+        const parts = dateStr.split(/[- :]/);
+        if (parts.length >= 6) {
+          const date = new Date(
+            Date.UTC(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5])
+          );
+          return new Intl.DateTimeFormat(locale, {
+            dateStyle: 'medium',
+            timeStyle: 'short',
+          }).format(date);
+        }
+        return dateStr;
+      } catch (err) {
+        return dateStr;
+      }
     },
     confirmAndClearBasket,
     handleRemoveBasketItem,

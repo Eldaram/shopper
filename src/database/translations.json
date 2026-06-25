@@ -425,6 +425,94 @@
     "barcode_not_found": {
       "fr": "Ce code-barres ne correspond à aucun produit connu",
       "en": "This barcode doesn't link to any known product"
+    },
+    "dashboard": {
+      "fr": "Tableau de bord",
+      "en": "Dashboard"
+    },
+    "management": {
+      "fr": "Gestion",
+      "en": "Management"
+    },
+    "today": {
+      "fr": "Aujourd'hui",
+      "en": "Today"
+    },
+    "this_week": {
+      "fr": "Cette semaine",
+      "en": "This week"
+    },
+    "this_month": {
+      "fr": "Ce mois-ci",
+      "en": "This month"
+    },
+    "avg_basket": {
+      "fr": "Panier moyen",
+      "en": "Average basket"
+    },
+    "total_sales": {
+      "fr": "Ventes totales",
+      "en": "Total sales"
+    },
+    "total_transactions": {
+      "fr": "Transactions totales",
+      "en": "Total transactions"
+    },
+    "most_sold_today": {
+      "fr": "Article le plus vendu aujourd'hui",
+      "en": "Most sold item today"
+    },
+    "most_growth_month": {
+      "fr": "Plus forte progression du mois",
+      "en": "Highest growth this month"
+    },
+    "growth": {
+      "fr": "Progression",
+      "en": "Growth"
+    },
+    "no_data": {
+      "fr": "Aucune donnée",
+      "en": "No data"
+    },
+    "client": {
+      "fr": "Client",
+      "en": "Client"
+    },
+    "date": {
+      "fr": "Date",
+      "en": "Date"
+    },
+    "total": {
+      "fr": "Total",
+      "en": "Total"
+    },
+    "items_count": {
+      "fr": "Articles",
+      "en": "Items"
+    },
+    "transaction_details": {
+      "fr": "Détails de la transaction",
+      "en": "Transaction details"
+    },
+    "read_only_basket": {
+      "fr": "Ticket de caisse (Lecture seule)",
+      "en": "Receipt (Read-only)"
+    },
+    "no_transactions": {
+      "fr": "Aucune transaction enregistrée",
+      "en": "No transactions recorded"
+    },
+    "previous": {
+      "fr": "Précédent",
+      "en": "Previous"
+    },
+    "next": {
+      "fr": "Suivant",
+      "en": "Next"
+    },
+    "page": {
+      "fr": "Page",
+      "en": "Page"
     }
   }
 }

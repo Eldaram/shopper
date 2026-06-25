@@ -7,7 +7,14 @@ class TicketLineModel extends BaseModel {
    * @returns {any[]}
    */
   findByTicketId(ticketId) {
-    return this.all('SELECT * FROM TicketLine WHERE ticket_id = ?', [ticketId]);
+    return this.all(
+      `SELECT tl.*, p.name AS product_name, p.barcode AS product_barcode,
+              p.image_path AS product_image_path, p.image_url_openfoodfacts AS product_image_url
+       FROM TicketLine tl
+       LEFT JOIN Product p ON tl.product_id = p.id
+       WHERE tl.ticket_id = ?`,
+      [ticketId]
+    );
   }
 
   /**

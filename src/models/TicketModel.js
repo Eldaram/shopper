@@ -10,6 +10,37 @@ class TicketModel extends BaseModel {
   }
 
   /**
+   * Finds all tickets paginated with their total number of items and customer name.
+   * @param {number} page
+   * @param {number} limit
+   * @returns {any[]}
+   */
+  findPaginated(page = 1, limit = 15) {
+    const offset = (page - 1) * limit;
+    return this.all(
+      `SELECT t.id, t.created_at, t.total_amount_ttc, t.total_amount_ht,
+              c.name AS customer_name,
+              COALESCE(SUM(tl.quantity), 0) AS item_count
+       FROM Ticket t
+       LEFT JOIN Customer c ON t.customer_id = c.id
+       LEFT JOIN TicketLine tl ON tl.ticket_id = t.id
+       GROUP BY t.id
+       ORDER BY t.created_at DESC, t.id DESC
+       LIMIT ? OFFSET ?`,
+      [limit, offset]
+    );
+  }
+
+  /**
+   * Counts all tickets.
+   * @returns {number}
+   */
+  countAll() {
+    const row = this.get('SELECT COUNT(*) AS count FROM Ticket');
+    return row ? row.count : 0;
+  }
+
+  /**
    * Finds a ticket by ID.
    * @param {number} id
    * @returns {any|undefined}

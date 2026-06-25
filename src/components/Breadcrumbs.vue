@@ -39,8 +39,16 @@ export default {
       type: Boolean,
       default: false,
     },
+    isViewingDashboard: {
+      type: Boolean,
+      default: false,
+    },
+    readonlyTicket: {
+      type: Object,
+      default: null,
+    },
   },
-  emits: ['select-category'],
+  emits: ['select-category', 'select-dashboard'],
   data() {
     return {
       basketState,
@@ -48,6 +56,16 @@ export default {
   },
   computed: {
     path() {
+      if (this.readonlyTicket) {
+        return [
+          { name: this.$t('dashboard'), type: 'dashboard' },
+          { name: `${this.$t('read_only_basket')} #${this.readonlyTicket.id}`, type: 'ticket' },
+        ];
+      }
+      if (this.isViewingDashboard) {
+        return [{ name: this.$t('dashboard'), type: 'dashboard' }];
+      }
+
       const result = [{ name: this.$t('all_catalogue'), type: 'home' }];
       if (this.selectedCategoryId !== null) {
         const catPath = [];
@@ -78,6 +96,8 @@ export default {
         this.$emit('select-category', null);
       } else if (item.type === 'category') {
         this.$emit('select-category', item.id);
+      } else if (item.type === 'dashboard') {
+        this.$emit('select-dashboard');
       }
     },
   },

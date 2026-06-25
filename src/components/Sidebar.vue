@@ -14,7 +14,9 @@
         <ul class="nav-list">
           <li
             class="nav-item"
-            :class="{ active: !basketState.isViewing && selectedCategoryId === null }"
+            :class="{
+              active: !basketState.isViewing && selectedCategoryId === null && !isViewingDashboard,
+            }"
             @click="$emit('select-category', null)"
             @contextmenu.prevent="$emit('contextmenu-category', $event, null)"
           >
@@ -28,6 +30,7 @@
             :class="{
               active:
                 !basketState.isViewing &&
+                !isViewingDashboard &&
                 (category.id === selectedCategoryId || category.id === activeAncestorId),
             }"
             @click="$emit('select-category', category.id)"
@@ -35,6 +38,20 @@
           >
             <span>{{ category.name }}</span>
             <span class="nav-item-count">{{ countProducts(category.id) }}</span>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Management Section -->
+      <div class="nav-title" style="margin-top: 24px">{{ $t('management') }}</div>
+      <nav>
+        <ul class="nav-list">
+          <li
+            class="nav-item"
+            :class="{ active: !basketState.isViewing && isViewingDashboard }"
+            @click="$emit('select-dashboard')"
+          >
+            <span>📊 {{ $t('dashboard') }}</span>
           </li>
         </ul>
       </nav>
@@ -64,8 +81,12 @@ export default {
       type: [Number, null],
       default: null,
     },
+    isViewingDashboard: {
+      type: Boolean,
+      default: false,
+    },
   },
-  emits: ['select-category', 'contextmenu-category'],
+  emits: ['select-category', 'contextmenu-category', 'select-dashboard'],
   data() {
     return {
       basketState,
