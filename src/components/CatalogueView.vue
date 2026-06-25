@@ -5,7 +5,7 @@
       <div class="section-header">
         <h2 class="section-title">
           <span>📁</span>
-          <span>{{ selectedCategoryId === null ? 'Rayons principaux' : 'Sous-catégories' }}</span>
+          <span>{{ selectedCategoryId === null ? $t('main_categories') : $t('subcategories') }}</span>
           <span class="section-title-badge">{{ subcategoriesList.length }}</span>
         </h2>
       </div>
@@ -25,7 +25,7 @@
       <div class="section-header">
         <h2 class="section-title">
           <span>📦</span>
-          <span>Articles</span>
+          <span>{{ $t('products') }}</span>
           <span class="section-title-badge">{{ filteredProducts.length }}</span>
         </h2>
       </div>
@@ -43,8 +43,8 @@
 
       <div v-else class="empty-state">
         <span class="empty-state-icon">🔍</span>
-        <h3 class="empty-state-title">Aucun article trouvé</h3>
-        <p>Essayez de modifier vos filtres ou de taper une autre recherche.</p>
+        <h3 class="empty-state-title">{{ $t('no_products_found') }}</h3>
+        <p>{{ $t('try_modifying_filters') }}</p>
       </div>
     </div>
   </div>

@@ -5,14 +5,17 @@ module.exports = {
     const mainModule = require('../../main');
     const mainWindow = mainModule.getMainWindow ? mainModule.getMainWindow() : null;
 
+    const TranslationController = require('../controllers/TranslationController');
+    const t = (key) => TranslationController.getText(TranslationController.getCurrentLanguage(), key);
+
     const result = await dialog.showMessageBox(mainWindow, {
       type: 'warning',
-      buttons: ['Abandonner', 'Rester'],
+      buttons: [t('abandon'), t('stay')],
       defaultId: 1,
       cancelId: 1,
-      title: 'Modifications non enregistrées',
-      message: 'Voulez-vous abandonner vos modifications ?',
-      detail: 'Si vous quittez, toutes les modifications non enregistrées seront perdues.',
+      title: t('unsaved_changes_title'),
+      message: t('unsaved_changes_msg'),
+      detail: t('unsaved_changes_detail'),
     });
     return result.response;
   },
@@ -21,14 +24,17 @@ module.exports = {
     const mainModule = require('../../main');
     const mainWindow = mainModule.getMainWindow ? mainModule.getMainWindow() : null;
 
+    const TranslationController = require('../controllers/TranslationController');
+    const t = (key) => TranslationController.getText(TranslationController.getCurrentLanguage(), key);
+
     const result = await dialog.showMessageBox(mainWindow, {
       type: 'warning',
-      buttons: ['Supprimer', 'Annuler'],
+      buttons: [t('delete'), t('cancel')],
       defaultId: 1,
       cancelId: 1,
-      title: 'Suppression de produit',
-      message: `Voulez-vous vraiment supprimer le produit "${productName}" ?`,
-      detail: "Cette action est irréversible (le produit sera masqué de l'inventaire).",
+      title: t('delete_product_title'),
+      message: t('delete_product_msg').replace('{productName}', productName),
+      detail: t('delete_product_detail'),
     });
     return result.response === 0;
   },
@@ -37,13 +43,16 @@ module.exports = {
     const mainModule = require('../../main');
     const mainWindow = mainModule.getMainWindow ? mainModule.getMainWindow() : null;
 
+    const TranslationController = require('../controllers/TranslationController');
+    const t = (key) => TranslationController.getText(TranslationController.getCurrentLanguage(), key);
+
     const result = await dialog.showMessageBox(mainWindow, {
       type: 'warning',
-      buttons: ['Vider le panier', 'Annuler'],
+      buttons: [t('clear_basket_confirm'), t('cancel')],
       defaultId: 1,
       cancelId: 1,
-      title: 'Vider le panier',
-      message: 'Voulez vous vraiment vider tout le panier ?',
+      title: t('clear_basket_title'),
+      message: t('clear_basket_msg'),
     });
     return result.response === 0;
   },

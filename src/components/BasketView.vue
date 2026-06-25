@@ -3,9 +3,9 @@
     <div class="basket-header">
       <h1 class="basket-title">
         <span class="basket-title-icon">🛒</span>
-        <span>Panier</span>
+        <span>{{ $t('basket') }}</span>
         <span class="basket-badge">
-          {{ totalItems }} {{ totalItems > 1 ? 'articles' : 'article' }}
+          {{ totalItems }} {{ totalItems > 1 ? $t('items') : $t('item') }}
         </span>
       </h1>
       <button
@@ -14,17 +14,17 @@
         @click="confirmAndClearBasket"
       >
         <span class="clear-icon">🗑️</span>
-        <span>Vider le panier</span>
+        <span>{{ $t('clear_basket') }}</span>
       </button>
     </div>
 
     <!-- Empty State -->
     <div v-if="basketState.items.length === 0" class="basket-empty-state">
       <span class="empty-cart-icon">🛒</span>
-      <h2>Le panier est vide</h2>
-      <p>Ajoutez des articles depuis le catalogue pour commencer une vente.</p>
+      <h2>{{ $t('basket_empty_title') }}</h2>
+      <p>{{ $t('basket_empty_desc') }}</p>
       <button class="btn-back-catalog" @click="$emit('close')">
-        Retour à l'exploreur des produits
+        {{ $t('back_to_explorer') }}
       </button>
     </div>
 
@@ -34,13 +34,13 @@
         <table class="basket-table">
           <thead>
             <tr>
-              <th>Image</th>
-              <th>Article</th>
-              <th>Taxe</th>
-              <th>Prix unitaire TTC</th>
-              <th>Quantité</th>
-              <th>Total TTC</th>
-              <th>Action</th>
+              <th>{{ $t('image') }}</th>
+              <th>{{ $t('product') }}</th>
+              <th>{{ $t('tax') }}</th>
+              <th>{{ $t('unit_price_ttc') }}</th>
+              <th>{{ $t('quantity') }}</th>
+              <th>{{ $t('total_ttc') }}</th>
+              <th>{{ $t('action') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -97,7 +97,7 @@
                 <button
                   class="btn-remove-item"
                   @click="handleRemoveBasketItem(item.product.id)"
-                  title="Supprimer l'article"
+                  :title="$t('delete_item')"
                 >
                   🗑️
                 </button>
@@ -111,19 +111,19 @@
       <div class="basket-footer">
         <div class="basket-footer-left">
           <button class="btn-back-catalog-link" @click="$emit('close')">
-            ← Retour à l'exploreur des produits
+            ← {{ $t('back_to_explorer') }}
           </button>
         </div>
         <div class="basket-summary-card">
           <div class="summary-row">
-            <span>Nombre d'articles :</span>
+            <span>{{ $t('num_items') }}</span>
             <span class="summary-value">{{ totalItems }}</span>
           </div>
           <div class="summary-row total-row">
-            <span>Montant total (TTC) :</span>
+            <span>{{ $t('total_amount_ttc') }}</span>
             <span class="summary-total-price">{{ formatPrice(totalTtc) }}</span>
           </div>
-          <button class="btn-validate-sale" @click="handleValidateSale">Valider la vente</button>
+          <button class="btn-validate-sale" @click="handleValidateSale">{{ $t('validate_sale') }}</button>
         </div>
       </div>
     </div>
@@ -179,8 +179,9 @@ export default {
         .toUpperCase();
     },
     formatPrice(price) {
-      if (typeof price !== 'number') return '0,00 €';
-      return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(price);
+      if (typeof price !== 'number') return this.$currentLang === 'fr' ? '0,00 €' : '€0.00';
+      const locale = this.$currentLang === 'fr' ? 'fr-FR' : 'en-GB';
+      return new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(price);
     },
     getTaxLabel(product) {
       const rate = this.tvaRates.find((r) => r.id === product.tva_id);

@@ -17,6 +17,7 @@ const productHandlers = require('./src/ipc/productHandlers');
 const tvaHandlers = require('./src/ipc/tvaHandlers');
 const imageHandlers = require('./src/ipc/imageHandlers');
 const dialogHandlers = require('./src/ipc/dialogHandlers');
+const translationHandlers = require('./src/ipc/translationHandlers');
 const MenuService = require('./src/services/MenuService');
 
 // Global error nets for main process
@@ -115,6 +116,7 @@ function initializeApp() {
       tvaHandlers,
       imageHandlers,
       dialogHandlers,
+      translationHandlers,
     ]);
 
     ipcMain.on('set-delete-menu-enabled', (event, enabled) => {

@@ -33,4 +33,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   confirmClearBasket: () => ipcRenderer.invoke('show-clear-basket-dialog'),
   onMenuClearBasket: (callback) =>
     ipcRenderer.on('menu-clear-basket', (_event, value) => callback(value)),
+  getAvailableLanguages: () => ipcRenderer.invoke('get-available-languages'),
+  getLanguageDetails: (code) => ipcRenderer.invoke('get-language-details', code),
+  getText: (textCode) => ipcRenderer.invoke('get-text', textCode),
+  getCurrentLanguage: () => ipcRenderer.invoke('get-current-language'),
+  setLanguage: (code) => ipcRenderer.invoke('set-current-language', code),
 });

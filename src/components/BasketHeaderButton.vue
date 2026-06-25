@@ -3,10 +3,10 @@
     class="basket-header-btn"
     :class="{ active: basketState.isViewing }"
     @click="$emit('click')"
-    title="Voir le panier"
+    :title="$t('basket')"
   >
     <span class="basket-btn-icon">🛒</span>
-    <span class="basket-btn-text">Panier ({{ totalBasketItems }})</span>
+    <span class="basket-btn-text">{{ $t('basket') }} ({{ totalBasketItems }})</span>
   </button>
 </template>
 
