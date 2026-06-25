@@ -61,7 +61,7 @@ export async function confirmAndClearBasket() {
 export async function handleValidateSale() {
   const lines = basketState.items.map((item) => ({
     product_id: item.product.id,
-    quantity: item.quantity,
+    quantity: parseInt(item.quantity, 10) || 1,
     discount_value: 0,
     is_discount_percentage: false,
   }));
@@ -80,18 +80,6 @@ export async function handleValidateSale() {
     }
   }
 
-  const locale = i18n.currentLang.value === 'fr' ? 'fr-FR' : 'en-GB';
-  const formattedTotal = new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(
-    basketState.items.reduce(
-      (sum, item) =>
-        sum + (parseFloat(item.product.price_ttc) || 0) * (parseInt(item.quantity) || 0),
-      0
-    )
-  );
-  alert(i18n.t('sale_validated_msg').replace('{amount}', formattedTotal));
   clearBasket();
   basketState.isViewing = false;
 }
