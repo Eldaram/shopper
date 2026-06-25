@@ -24,6 +24,10 @@ const mockElectronAPI = {
   setDeleteItemState: vi.fn(),
   onMenuCreateProduct: vi.fn(),
   onMenuDeleteProduct: vi.fn(),
+  searchOffByBarcode: vi.fn(),
+  searchOffByName: vi.fn(),
+  isOnline: vi.fn().mockResolvedValue(true),
+  onOfflineStatusChanged: vi.fn(),
 };
 
 globalThis.window = globalThis.window || {};
@@ -458,6 +462,94 @@ describe('Product Manual Creation & Edition Tests', () => {
       expect(mockElectronAPI.confirmDeleteProduct).toHaveBeenCalledWith('Target Product');
       expect(mockElectronAPI.deleteProduct).toHaveBeenCalledWith(10);
       expect(wrapper.vm.focusedProduct).toBeNull();
+    });
+
+    it('should query OpenFoodFacts API on barcode blur and populate fields if found', async () => {
+      const wrapper = mount(ProductDetail, {
+        props: {
+          mode: 'create',
+          categories: categoriesMock,
+          tvaRates: tvaRatesMock,
+        },
+      });
+
+      mockElectronAPI.searchOffByBarcode.mockResolvedValue({
+        found: true,
+        barcode: '5449000000996',
+        name: 'Coca-Cola 1.5L',
+        image_url: 'https://example.com/coca.png',
+      });
+
+      wrapper.vm.localProduct.barcode = '5449000000996';
+      await wrapper.vm.handleBarcodeBlur();
+
+      expect(mockElectronAPI.searchOffByBarcode).toHaveBeenCalledWith('5449000000996');
+      expect(wrapper.vm.localProduct.name).toBe('Coca-Cola 1.5L');
+      expect(wrapper.vm.localProduct.image_preview).toBe('https://example.com/coca.png');
+      expect(wrapper.vm.localProduct.is_openfoodfacts).toBe(1);
+      expect(wrapper.vm.barcodeNotFound).toBe(false);
+    });
+
+    it('should show soft orange warning if barcode is not found on OpenFoodFacts', async () => {
+      const wrapper = mount(ProductDetail, {
+        props: {
+          mode: 'create',
+          categories: categoriesMock,
+          tvaRates: tvaRatesMock,
+        },
+      });
+
+      mockElectronAPI.searchOffByBarcode.mockResolvedValue({ found: false });
+
+      wrapper.vm.localProduct.barcode = '12345678';
+      await wrapper.vm.handleBarcodeBlur();
+
+      expect(mockElectronAPI.searchOffByBarcode).toHaveBeenCalledWith('12345678');
+      expect(wrapper.vm.barcodeNotFound).toBe(true);
+    });
+
+    it('should perform search by name after 700ms debounce if still focused', async () => {
+      vi.useFakeTimers();
+      const wrapper = mount(ProductDetail, {
+        props: {
+          mode: 'create',
+          categories: categoriesMock,
+          tvaRates: tvaRatesMock,
+        },
+      });
+
+      mockElectronAPI.searchOffByName.mockResolvedValue([
+        { barcode: '11111111', name: 'Product 1', image_url: null },
+      ]);
+
+      wrapper.vm.localProduct.name = 'Choc';
+      wrapper.vm.isNameFocused = true;
+      wrapper.vm.handleNameInput();
+
+      await vi.advanceTimersByTimeAsync(700);
+
+      expect(mockElectronAPI.searchOffByName).toHaveBeenCalledWith('Choc');
+      expect(wrapper.vm.suggestions.length).toBe(1);
+      expect(wrapper.vm.suggestions[0].name).toBe('Product 1');
+
+      vi.useRealTimers();
+    });
+
+    it('should not perform barcode lookup or show warning if offline on barcode blur', async () => {
+      const wrapper = mount(ProductDetail, {
+        props: {
+          mode: 'create',
+          categories: categoriesMock,
+          tvaRates: tvaRatesMock,
+          isOffline: true,
+        },
+      });
+
+      wrapper.vm.localProduct.barcode = '5449000000996';
+      await wrapper.vm.handleBarcodeBlur();
+
+      expect(mockElectronAPI.searchOffByBarcode).not.toHaveBeenCalled();
+      expect(wrapper.vm.barcodeNotFound).toBe(false);
     });
   });
 });

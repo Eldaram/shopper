@@ -72,6 +72,8 @@ const TRANSLATION_KEYS = [
   'delete_category_detail',
   'menu_delete_category',
   'delete_category',
+  'searching_openfoodfacts',
+  'barcode_not_found',
 ];
 
 // Fallback dictionary for testing and browser mock environments
@@ -151,6 +153,8 @@ const FALLBACK_TRANSLATIONS = {
       'Aucun article ne sera supprimé. Tous les articles de cette catégorie seront déplacés vers la catégorie parente.',
     menu_delete_category: 'Supprimer la catégorie',
     delete_category: 'Supprimer la catégorie',
+    searching_openfoodfacts: 'Recherche sur Open Food Facts...',
+    barcode_not_found: 'Ce code-barres ne correspond à aucun produit connu',
   },
   en: {
     categories: 'Categories',
@@ -226,6 +230,8 @@ const FALLBACK_TRANSLATIONS = {
       'No items will be deleted. All products in this category will be moved to the parent category.',
     menu_delete_category: 'Delete Category',
     delete_category: 'Delete category',
+    searching_openfoodfacts: 'Searching Open Food Facts...',
+    barcode_not_found: "This barcode doesn't link to any known product",
   },
 };
 

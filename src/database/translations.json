@@ -417,6 +417,14 @@
     "delete_category": {
       "fr": "Supprimer la catégorie",
       "en": "Delete category"
+    },
+    "searching_openfoodfacts": {
+      "fr": "Recherche sur Open Food Facts...",
+      "en": "Searching Open Food Facts..."
+    },
+    "barcode_not_found": {
+      "fr": "Ce code-barres ne correspond à aucun produit connu",
+      "en": "This barcode doesn't link to any known product"
     }
   }
 }
