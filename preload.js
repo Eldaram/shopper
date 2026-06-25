@@ -46,4 +46,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   isOnline: () => ipcRenderer.invoke('is-online'),
   onOfflineStatusChanged: (callback) =>
     ipcRenderer.on('offline-status-changed', (_event, value) => callback(value)),
+  getTicketsPage: (page, limit) => ipcRenderer.invoke('get-tickets-page', page, limit),
+  getTicketDetails: (id) => ipcRenderer.invoke('get-ticket-details', id),
+  getDashboardStats: () => ipcRenderer.invoke('get-dashboard-stats'),
+  checkout: (data) => ipcRenderer.invoke('checkout', data),
 });

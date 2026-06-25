@@ -58,7 +58,28 @@ export async function confirmAndClearBasket() {
   }
 }
 
-export function handleValidateSale() {
+export async function handleValidateSale() {
+  const lines = basketState.items.map((item) => ({
+    product_id: item.product.id,
+    quantity: item.quantity,
+    discount_value: 0,
+    is_discount_percentage: false,
+  }));
+
+  if (window.electronAPI && typeof window.electronAPI.checkout === 'function') {
+    try {
+      await window.electronAPI.checkout({
+        customer_id: null,
+        lines,
+        delivery_address: null,
+      });
+    } catch (err) {
+      console.error('Checkout failed:', err);
+      alert('Error during checkout: ' + err.message);
+      return;
+    }
+  }
+
   const locale = i18n.currentLang.value === 'fr' ? 'fr-FR' : 'en-GB';
   const formattedTotal = new Intl.NumberFormat(locale, {
     style: 'currency',

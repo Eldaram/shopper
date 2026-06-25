@@ -16,6 +16,131 @@ class TicketController {
     return TicketModel.findById(id);
   }
 
+  getPaginatedTickets(page = 1, limit = 15) {
+    const p = Math.max(1, parseInt(page) || 1);
+    const lim = Math.max(1, parseInt(limit) || 15);
+    const tickets = TicketModel.findPaginated(p, lim);
+    const totalCount = TicketModel.countAll();
+    const totalPages = Math.ceil(totalCount / lim);
+
+    return {
+      tickets,
+      totalCount,
+      totalPages,
+      page: p,
+      limit: lim,
+    };
+  }
+
+  getDashboardStats() {
+    const db = connection.getDb();
+
+    // Today's Stats
+    const todayStats = db
+      .prepare(
+        `
+      SELECT 
+        COALESCE(SUM(total_amount_ttc), 0) AS total_ttc,
+        COALESCE(SUM(total_amount_ht), 0) AS total_ht,
+        COUNT(*) AS count,
+        COALESCE(AVG(total_amount_ttc), 0) AS avg_ttc
+      FROM Ticket
+      WHERE date(created_at, 'localtime') = date('now', 'localtime')
+    `
+      )
+      .get();
+
+    // This Week (Monday-based)
+    const weekStats = db
+      .prepare(
+        `
+      SELECT 
+        COALESCE(SUM(total_amount_ttc), 0) AS total_ttc,
+        COALESCE(SUM(total_amount_ht), 0) AS total_ht,
+        COUNT(*) AS count,
+        COALESCE(AVG(total_amount_ttc), 0) AS avg_ttc
+      FROM Ticket
+      WHERE strftime('%Y-%W', created_at, 'localtime') = strftime('%Y-%W', 'now', 'localtime')
+    `
+      )
+      .get();
+
+    // This Month
+    const monthStats = db
+      .prepare(
+        `
+      SELECT 
+        COALESCE(SUM(total_amount_ttc), 0) AS total_ttc,
+        COALESCE(SUM(total_amount_ht), 0) AS total_ht,
+        COUNT(*) AS count,
+        COALESCE(AVG(total_amount_ttc), 0) AS avg_ttc
+      FROM Ticket
+      WHERE strftime('%Y-%m', created_at, 'localtime') = strftime('%Y-%m', 'now', 'localtime')
+    `
+      )
+      .get();
+
+    // Most sold item today
+    const mostSoldToday =
+      db
+        .prepare(
+          `
+      SELECT 
+        p.id, 
+        p.name, 
+        SUM(tl.quantity) AS qty_sold
+      FROM TicketLine tl
+      JOIN Ticket t ON tl.ticket_id = t.id
+      JOIN Product p ON tl.product_id = p.id
+      WHERE date(t.created_at, 'localtime') = date('now', 'localtime')
+      GROUP BY p.id
+      ORDER BY qty_sold DESC
+      LIMIT 1
+    `
+        )
+        .get() || null;
+
+    // Item with most growth this month vs last month
+    const itemMostGrowth =
+      db
+        .prepare(
+          `
+      SELECT 
+        p.id, 
+        p.name,
+        COALESCE(this_month.qty_this_month, 0) AS qty_this_month,
+        COALESCE(last_month.qty_last_month, 0) AS qty_last_month,
+        (COALESCE(this_month.qty_this_month, 0) - COALESCE(last_month.qty_last_month, 0)) AS growth
+      FROM Product p
+      INNER JOIN (
+        SELECT product_id, SUM(quantity) AS qty_this_month
+        FROM TicketLine tl
+        JOIN Ticket t ON tl.ticket_id = t.id
+        WHERE strftime('%Y-%m', t.created_at, 'localtime') = strftime('%Y-%m', 'now', 'localtime')
+        GROUP BY product_id
+      ) this_month ON p.id = this_month.product_id
+      LEFT JOIN (
+        SELECT product_id, SUM(quantity) AS qty_last_month
+        FROM TicketLine tl
+        JOIN Ticket t ON tl.ticket_id = t.id
+        WHERE strftime('%Y-%m', t.created_at, 'localtime') = strftime('%Y-%m', 'now', 'localtime', '-1 month')
+        GROUP BY product_id
+      ) last_month ON p.id = last_month.product_id
+      ORDER BY growth DESC
+      LIMIT 1
+    `
+        )
+        .get() || null;
+
+    return {
+      today: todayStats,
+      week: weekStats,
+      month: monthStats,
+      mostSoldToday,
+      itemMostGrowth,
+    };
+  }
+
   /**
    * Retrieves full details of a ticket including its lines and delivery status.
    * @param {number} id - Ticket ID.
