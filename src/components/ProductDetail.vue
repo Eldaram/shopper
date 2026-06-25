@@ -2,13 +2,13 @@
   <div class="detail-container">
     <div class="detail-header">
       <button class="btn-back" @click="handleCancel"><span>←</span> Retour au catalogue</button>
-      <span class="detail-badge-mode">{{ isCreateMode ? '➕ Création' : '🔍 Consultation' }}</span>
+      <span class="detail-badge-mode">{{ activeState ? activeState.getBadgeText() : '' }}</span>
     </div>
 
     <div class="detail-card">
       <div
         class="detail-image-sec"
-        :class="{ clickable: isCreateMode, 'drag-over': isDragOver }"
+        :class="{ clickable: activeState && activeState.isImageClickable(), 'drag-over': isDragOver }"
         @click="handleImageClick"
         @dragover.prevent="handleDragOver"
         @dragenter.prevent="handleDragEnter"
@@ -16,7 +16,7 @@
         @drop.prevent="handleDrop"
       >
         <button
-          v-if="isCreateMode && imageUrl"
+          v-if="activeState && activeState.showDeleteImageButton() && imageUrl"
           class="btn-delete-img"
           @click.stop="handleRemoveImage"
           title="Supprimer l'image"
@@ -24,14 +24,14 @@
           <span>🗑️</span>
         </button>
         <img
-          v-if="imageUrl"
+          v-if="imageUrl && !imageLoadError"
           :src="imageUrl"
           :alt="localProduct.name || 'Produit'"
           class="detail-large-img"
           @error="handleImageError"
         />
         <div v-else class="detail-img-placeholder">
-          <template v-if="isCreateMode">
+          <template v-if="activeState && !activeState.isViewMode()">
             <span class="upload-icon">📷</span>
             <span class="upload-text"
               >Choisir une image<br /><span style="font-size: 11px; opacity: 0.7"
@@ -47,7 +47,7 @@
 
       <div class="detail-form-sec">
         <h2 class="detail-form-title">
-          {{ isCreateMode ? 'Créer un produit' : 'Détails du Produit' }}
+          {{ activeState ? activeState.getTitle() : '' }}
         </h2>
 
         <form class="form-grid" @submit.prevent="handleSubmit">
@@ -57,7 +57,7 @@
               type="text"
               v-model="localProduct.name"
               class="form-input"
-              :disabled="!isCreateMode"
+              :disabled="!activeState || !activeState.isEditable()"
               required
               placeholder="Ex: Coca-Cola 1.5L"
             />
@@ -69,7 +69,7 @@
               type="text"
               v-model="localProduct.barcode"
               class="form-input"
-              :disabled="!isCreateMode"
+              :disabled="!activeState || !activeState.isEditable()"
               placeholder="Ex: 5449000000996"
             />
           </div>
@@ -79,7 +79,7 @@
             <select
               v-model="localProduct.category_id"
               class="form-input"
-              :disabled="!isCreateMode"
+              :disabled="!activeState || !activeState.isEditable()"
               required
             >
               <option :value="null" disabled>Choisir une catégorie</option>
@@ -96,7 +96,7 @@
               v-model="localProduct.price_ht"
               @input="onPriceHtInput"
               class="form-input"
-              :disabled="!isCreateMode"
+              :disabled="!activeState || !activeState.isEditable()"
               required
               placeholder="0.00"
             />
@@ -109,7 +109,7 @@
               v-model="localProduct.price_ttc"
               @input="onPriceTtcInput"
               class="form-input"
-              :disabled="!isCreateMode"
+              :disabled="!activeState || !activeState.isEditable()"
               required
               placeholder="0.00"
             />
@@ -121,7 +121,7 @@
               v-model="localProduct.tva_id"
               @change="onTvaChange"
               class="form-input"
-              :disabled="!isCreateMode"
+              :disabled="!activeState || !activeState.isEditable()"
               required
             >
               <option v-for="rate in tvaRates" :key="rate.id" :value="rate.id">
@@ -135,7 +135,7 @@
             <input
               type="text"
               :value="
-                isCreateMode
+                activeState && activeState.isCreateMode()
                   ? 'Import Local'
                   : product && product.is_openfoodfacts
                     ? 'Open Food Facts'
@@ -145,18 +145,34 @@
               disabled
             />
           </div>
+
+          <div v-if="activeState && !activeState.isCreateMode() && product && product.updated_at" class="form-group">
+            <label class="form-label">Dernière modification</label>
+            <input
+              type="text"
+              :value="formatDate(product.updated_at)"
+              class="form-input"
+              disabled
+            />
+          </div>
         </form>
 
         <div class="detail-actions">
-          <button v-if="!isCreateMode" class="btn-secondary" disabled>Modifier</button>
-          <button v-if="!isCreateMode" class="btn-primary" disabled>Enregistrer</button>
+          <!-- View mode buttons -->
+          <template v-if="activeState && activeState.isViewMode()">
+            <button class="btn-secondary active-btn" @click="activeState.handleEdit()">Modifier</button>
+            <button class="btn-primary" disabled>Enregistrer</button>
+          </template>
 
-          <button v-if="isCreateMode" class="btn-secondary active-btn" @click="handleCancel">
-            Annuler
-          </button>
-          <button v-if="isCreateMode" class="btn-primary active-btn" @click="handleSubmit">
-            Enregistrer
-          </button>
+          <!-- Edit/Create mode buttons -->
+          <template v-else-if="activeState">
+            <button class="btn-secondary active-btn" @click="activeState.handleCancel()">
+              Annuler
+            </button>
+            <button class="btn-primary active-btn" @click="activeState.handleSubmit()">
+              Enregistrer
+            </button>
+          </template>
         </div>
       </div>
     </div>
@@ -164,6 +180,81 @@
 </template>
 
 <script>
+class ProductDetailState {
+  constructor(vm) {
+    this.vm = vm;
+  }
+  isCreateMode() { return false; }
+  isEditMode() { return false; }
+  isViewMode() { return false; }
+  isEditable() { return false; }
+  isImageClickable() { return false; }
+  showDeleteImageButton() { return false; }
+  getBadgeText() { return ''; }
+  getTitle() { return ''; }
+  
+  handleEdit() {}
+  handleCancel() {}
+  handleSubmit() {}
+}
+
+class ViewState extends ProductDetailState {
+  isViewMode() { return true; }
+  getBadgeText() { return '🔍 Consultation'; }
+  getTitle() { return 'Détails du Produit'; }
+  
+  handleEdit() {
+    this.vm.transitionTo('edit');
+  }
+  
+  handleCancel() {
+    this.vm.$emit('close');
+  }
+}
+
+class EditState extends ProductDetailState {
+  isEditMode() { return true; }
+  isEditable() { return true; }
+  isImageClickable() { return true; }
+  showDeleteImageButton() { return true; }
+  getBadgeText() { return '✏️ Édition'; }
+  getTitle() { return 'Modifier le produit'; }
+  
+  async handleCancel() {
+    if (this.vm.isFormDirty()) {
+      const proceed = await this.vm.confirmDiscardChanges();
+      if (!proceed) return;
+    }
+    this.vm.initForm();
+    this.vm.transitionTo('view');
+  }
+  
+  async handleSubmit() {
+    await this.vm.handleSave();
+  }
+}
+
+class CreateState extends ProductDetailState {
+  isCreateMode() { return true; }
+  isEditable() { return true; }
+  isImageClickable() { return true; }
+  showDeleteImageButton() { return true; }
+  getBadgeText() { return '➕ Création'; }
+  getTitle() { return 'Créer un produit'; }
+  
+  async handleCancel() {
+    if (this.vm.isFormDirty()) {
+      const proceed = await this.vm.confirmDiscardChanges();
+      if (!proceed) return;
+    }
+    this.vm.$emit('close');
+  }
+  
+  async handleSubmit() {
+    await this.vm.handleSave();
+  }
+}
+
 export default {
   name: 'ProductDetail',
   props: {
@@ -173,14 +264,10 @@ export default {
     },
     mode: {
       type: String,
-      default: 'view', // 'view' or 'create'
+      default: 'view', // 'view', 'edit' or 'create'
     },
     preselectedCategoryId: {
       type: Number,
-      default: null,
-    },
-    draft: {
-      type: Object,
       default: null,
     },
     categories: {
@@ -192,10 +279,12 @@ export default {
       required: true,
     },
   },
-  emits: ['close', 'product-created'],
+  emits: ['close', 'product-created', 'product-updated'],
   data() {
     return {
       isDragOver: false,
+      currentStateName: this.mode || 'view',
+      imageLoadError: false,
       localProduct: {
         name: '',
         barcode: '',
@@ -209,11 +298,17 @@ export default {
     };
   },
   computed: {
-    isCreateMode() {
-      return this.mode === 'create';
+    activeState() {
+      if (this.currentStateName === 'create') {
+        return new CreateState(this);
+      } else if (this.currentStateName === 'edit') {
+        return new EditState(this);
+      } else {
+        return new ViewState(this);
+      }
     },
     imageUrl() {
-      if (this.isCreateMode) {
+      if (this.activeState && !this.activeState.isViewMode()) {
         return this.localProduct.image_preview || this.localProduct.image_path || null;
       }
       return this.product
@@ -221,7 +316,9 @@ export default {
         : null;
     },
     initials() {
-      const name = this.isCreateMode ? this.localProduct.name : this.product?.name;
+      const name = (this.activeState && !this.activeState.isViewMode())
+        ? this.localProduct.name
+        : this.product?.name;
       if (!name) return '';
       return name
         .split(' ')
@@ -254,7 +351,6 @@ export default {
         traverse(root, 0);
       }
 
-      // Add orphaned categories (e.g. if parent_id is not null but parent is not found in categories)
       const orphaned = this.categories.filter(
         (c) => c.parent_id !== null && !this.categories.some((p) => p.id === c.parent_id)
       );
@@ -277,18 +373,13 @@ export default {
       immediate: true,
       deep: true,
     },
-    mode() {
+    mode(newMode) {
+      this.currentStateName = newMode;
       this.initForm();
-    },
-    draft: {
-      handler() {
-        this.initForm();
-      },
-      deep: true,
     },
     tvaRates: {
       handler(newRates) {
-        if (this.isCreateMode && !this.localProduct.tva_id && newRates && newRates.length > 0) {
+        if (this.currentStateName === 'create' && !this.localProduct.tva_id && newRates && newRates.length > 0) {
           this.localProduct.tva_id = newRates[0].id;
         }
       },
@@ -296,31 +387,23 @@ export default {
     },
   },
   methods: {
+    transitionTo(stateName) {
+      this.currentStateName = stateName;
+      this.initForm();
+    },
     initForm() {
-      if (this.isCreateMode) {
-        if (this.draft) {
-          this.localProduct = {
-            name: this.draft.name || '',
-            barcode: this.draft.barcode || '',
-            category_id: this.draft.category_id || null,
-            tva_id: this.draft.tva_id || this.tvaRates[0]?.id || null,
-            price_ht: this.draft.price_ht || '0.00',
-            price_ttc: this.draft.price_ttc || '0.00',
-            image_path: this.draft.image_path || null,
-            image_preview: this.draft.image_preview || null,
-          };
-        } else {
-          this.localProduct = {
-            name: '',
-            barcode: '',
-            category_id: this.preselectedCategoryId || null,
-            tva_id: this.localProduct.tva_id || this.tvaRates[0]?.id || null,
-            price_ht: '0.00',
-            price_ttc: '0.00',
-            image_path: null,
-            image_preview: null,
-          };
-        }
+      this.imageLoadError = false;
+      if (this.currentStateName === 'create') {
+        this.localProduct = {
+          name: '',
+          barcode: '',
+          category_id: this.preselectedCategoryId || null,
+          tva_id: this.localProduct.tva_id || this.tvaRates[0]?.id || null,
+          price_ht: '0.00',
+          price_ttc: '0.00',
+          image_path: null,
+          image_preview: null,
+        };
       } else if (this.product) {
         this.localProduct = {
           name: this.product.name || '',
@@ -347,11 +430,11 @@ export default {
       };
     },
     isFormDirty() {
-      if (!this.isCreateMode) return false;
+      if (this.activeState && this.activeState.isViewMode()) return false;
       const initial = this.getInitialProductState();
       return (
-        this.localProduct.name !== initial.name ||
-        this.localProduct.barcode !== initial.barcode ||
+        (this.localProduct.name || '') !== (initial.name || '') ||
+        (this.localProduct.barcode || '') !== (initial.barcode || '') ||
         this.localProduct.category_id !== initial.category_id ||
         this.localProduct.tva_id !== initial.tva_id ||
         this.parsePrice(this.localProduct.price_ht) !== initial.price_ht ||
@@ -360,26 +443,28 @@ export default {
       );
     },
     getInitialProductState() {
-      if (this.draft) {
+      if (this.currentStateName === 'create') {
         return {
-          name: this.draft.name || '',
-          barcode: this.draft.barcode || '',
-          category_id: this.draft.category_id || null,
-          tva_id: this.draft.tva_id || this.tvaRates[0]?.id || null,
-          price_ht: this.parsePrice(this.draft.price_ht),
-          price_ttc: this.parsePrice(this.draft.price_ttc),
-          image_path: this.draft.image_path || null,
+          name: '',
+          barcode: '',
+          category_id: this.preselectedCategoryId || null,
+          tva_id: this.tvaRates[0]?.id || null,
+          price_ht: 0,
+          price_ttc: 0,
+          image_path: null,
+        };
+      } else if (this.product) {
+        return {
+          name: this.product.name || '',
+          barcode: this.product.barcode || '',
+          category_id: this.product.category_id || null,
+          tva_id: this.product.tva_id || null,
+          price_ht: this.product.price_ht || 0,
+          price_ttc: this.product.price_ttc || 0,
+          image_path: this.product.image_path || null,
         };
       }
-      return {
-        name: '',
-        barcode: '',
-        category_id: this.preselectedCategoryId || null,
-        tva_id: this.tvaRates[0]?.id || null,
-        price_ht: 0,
-        price_ttc: 0,
-        image_path: null,
-      };
+      return {};
     },
     onPriceHtInput() {
       const rate = this.selectedTvaRatePercent;
@@ -420,12 +505,13 @@ export default {
       return spaces.repeat(opt.indent) + (opt.indent > 0 ? '└─ ' : '') + opt.name;
     },
     async handleImageClick() {
-      if (!this.isCreateMode) return;
+      if (this.activeState && this.activeState.isViewMode()) return;
 
       try {
         if (window.electronAPI && typeof window.electronAPI.selectImage === 'function') {
           const res = await window.electronAPI.selectImage();
           if (res) {
+            this.imageLoadError = false;
             this.localProduct.image_path = res.path;
             this.localProduct.image_preview = res.preview;
           }
@@ -437,6 +523,7 @@ export default {
           input.onchange = (e) => {
             const file = e.target.files[0];
             if (file) {
+              this.imageLoadError = false;
               this.localProduct.image_path = 'mock-path-for-testing';
               this.localProduct.image_preview = URL.createObjectURL(file);
             }
@@ -447,45 +534,41 @@ export default {
         console.error('Error selecting image:', err);
       }
     },
-    handleImageError(e) {
-      e.target.style.display = 'none';
-      const placeholder = document.createElement('div');
-      placeholder.className = 'detail-img-placeholder';
-      placeholder.innerText = this.initials;
-      e.target.parentNode.appendChild(placeholder);
+    handleImageError() {
+      this.imageLoadError = true;
     },
     handleRemoveImage() {
+      this.imageLoadError = false;
       this.localProduct.image_path = null;
       this.localProduct.image_preview = null;
     },
     handleDragOver() {
-      if (!this.isCreateMode) return;
+      if (this.activeState && this.activeState.isViewMode()) return;
       this.isDragOver = true;
     },
     handleDragEnter() {
-      if (!this.isCreateMode) return;
+      if (this.activeState && this.activeState.isViewMode()) return;
       this.isDragOver = true;
     },
     handleDragLeave() {
-      if (!this.isCreateMode) return;
+      if (this.activeState && this.activeState.isViewMode()) return;
       this.isDragOver = false;
     },
     handleDrop(e) {
-      if (!this.isCreateMode) return;
+      if (this.activeState && this.activeState.isViewMode()) return;
       this.isDragOver = false;
 
       const files = e.dataTransfer?.files;
       if (files && files.length > 0) {
         const file = files[0];
         if (file.type.startsWith('image/')) {
+          this.imageLoadError = false;
           this.localProduct.image_path = file.path || 'mock-path-for-testing';
           this.localProduct.image_preview = URL.createObjectURL(file);
         }
       }
     },
-    async handleSubmit() {
-      if (!this.isCreateMode) return;
-
+    async handleSave() {
       if (!this.localProduct.name || this.localProduct.name.trim() === '') {
         alert("Le nom de l'article est requis.");
         return;
@@ -518,7 +601,7 @@ export default {
           }
         }
 
-        const newProduct = {
+        const productData = {
           name: this.localProduct.name.trim(),
           barcode: this.localProduct.barcode ? this.localProduct.barcode.trim() : null,
           category_id: Number(this.localProduct.category_id),
@@ -526,24 +609,77 @@ export default {
           price_ht: priceHt,
           price_ttc: priceTtc,
           image_path: finalImagePath,
-          is_openfoodfacts: 0,
+          is_openfoodfacts: this.product ? this.product.is_openfoodfacts : 0,
         };
 
-        if (window.electronAPI && typeof window.electronAPI.createProduct === 'function') {
-          await window.electronAPI.createProduct(newProduct);
+        if (this.currentStateName === 'create') {
+          if (window.electronAPI && typeof window.electronAPI.createProduct === 'function') {
+            await window.electronAPI.createProduct(productData);
+          } else {
+            console.log('Mock: Product created', productData);
+          }
+          this.$emit('product-created', productData);
         } else {
-          console.log('Mock: Product created', newProduct);
+          // Edit mode
+          if (window.electronAPI && typeof window.electronAPI.updateProduct === 'function') {
+            await window.electronAPI.updateProduct(this.product.id, productData);
+          } else {
+            console.log('Mock: Product updated', this.product.id, productData);
+            // Fallback for browser mock mode
+            const idx = this.$parent.products.findIndex(p => p.id === this.product.id);
+            if (idx !== -1) {
+              const updatedMockProduct = {
+                ...this.product,
+                ...productData,
+                category_name: this.categories.find(c => c.id === productData.category_id)?.name || ''
+              };
+              this.$parent.products.splice(idx, 1, updatedMockProduct);
+            }
+          }
+          this.$emit('product-updated', this.product.id);
+          this.transitionTo('view');
         }
-
-        this.$emit('product-created', newProduct);
       } catch (err) {
-        console.error('Error creating product:', err);
-        alert(`Erreur lors de la création du produit: ${err.message}`);
+        console.error('Error saving product:', err);
+        alert(`Erreur lors de l'enregistrement du produit: ${err.message}`);
       }
     },
-    handleCancel() {
-      this.$emit('close');
+    async confirmDiscardChanges() {
+      let choice = 1; // Default to stay (1 is stay)
+      if (window.electronAPI && typeof window.electronAPI.showExitConfirmationDialog === 'function') {
+        choice = await window.electronAPI.showExitConfirmationDialog();
+      } else {
+        const res = window.confirm("Vous avez des modifications non enregistrées. Voulez-vous abandonner vos modifications ?");
+        choice = res ? 0 : 1; // 0 = Abandonner, 1 = Rester
+      }
+      return choice === 0;
     },
+    handleCancel() {
+      if (this.activeState) {
+        this.activeState.handleCancel();
+      } else {
+        this.$emit('close');
+      }
+    },
+    handleSubmit() {
+      if (this.activeState) {
+        this.activeState.handleSubmit();
+      }
+    },
+    formatDate(dateStr) {
+      if (!dateStr) return '';
+      let normalized = dateStr;
+      if (!dateStr.includes('Z') && !dateStr.includes('+') && dateStr.includes('-')) {
+        normalized = dateStr.replace(' ', 'T') + 'Z';
+      }
+      try {
+        const d = new Date(normalized);
+        if (isNaN(d.getTime())) return dateStr;
+        return d.toLocaleString('fr-FR');
+      } catch (e) {
+        return dateStr;
+      }
+    }
   },
 };
 </script>

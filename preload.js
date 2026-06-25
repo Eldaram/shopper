@@ -16,6 +16,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getProducts: () => ipcRenderer.invoke('get-products'),
   getTvaRates: () => ipcRenderer.invoke('get-tva-rates'),
   createProduct: (data) => ipcRenderer.invoke('create-product', data),
+  updateProduct: (id, data) => ipcRenderer.invoke('update-product', id, data),
   selectImage: () => ipcRenderer.invoke('select-image'),
   saveImage: (filePath) => ipcRenderer.invoke('save-image', filePath),
   showExitConfirmationDialog: () => ipcRenderer.invoke('show-exit-dialog'),

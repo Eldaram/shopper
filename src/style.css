@@ -488,6 +488,7 @@ body {
   display: grid;
   grid-template-columns: 350px 1fr;
   box-shadow: var(--card-shadow);
+  height: 580px;
 }
 
 .detail-image-sec {
@@ -571,6 +572,8 @@ body {
   font-size: 14px;
   color: var(--text-primary);
   outline: none;
+  height: 40px;
+  box-sizing: border-box;
 }
 
 .form-input:disabled {
@@ -614,6 +617,7 @@ body {
 @media (max-width: 900px) {
   .detail-card {
     grid-template-columns: 1fr;
+    height: auto;
   }
   .detail-image-sec {
     border-right: none;

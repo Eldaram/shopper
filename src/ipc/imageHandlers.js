@@ -44,13 +44,13 @@ module.exports = {
     const mainWindow = mainModule.getMainWindow ? mainModule.getMainWindow() : null;
 
     const result = await dialog.showMessageBox(mainWindow, {
-      type: 'question',
-      buttons: ['Garder le brouillon', 'Annuler', 'Abandonner'],
-      defaultId: 0,
+      type: 'warning',
+      buttons: ['Abandonner', 'Rester'],
+      defaultId: 1,
       cancelId: 1,
-      title: 'Changement de page',
-      message: 'Vous avez des modifications non enregistrées. Que voulez-vous faire ?',
-      detail: 'Si vous quittez sans sauvegarder, vos modifications seront perdues.',
+      title: 'Modifications non enregistrées',
+      message: 'Voulez-vous abandonner vos modifications ?',
+      detail: 'Si vous quittez, toutes les modifications non enregistrées seront perdues.',
     });
     return result.response;
   },

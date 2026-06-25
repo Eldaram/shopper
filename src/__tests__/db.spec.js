@@ -1,6 +1,19 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 const fs = require('fs');
 const path = require('path');
+
+// Mock electron in require cache for testing image file deletion
+const mockUserData = path.join(__dirname, 'mock-user-data');
+require.cache[require.resolve('electron')] = {
+  exports: {
+    app: {
+      getPath: (name) => {
+        if (name === 'userData') return mockUserData;
+        return 'mock-path';
+      },
+    },
+  },
+};
 
 const DatabaseController = require('../controllers/DatabaseController');
 const TvaController = require('../controllers/TvaController');
@@ -155,6 +168,62 @@ describe('Shopper SQLite Database Integration', () => {
       // Restore product
       ProductController.restore(prodId);
       expect(ProductController.getById(prodId)).toBeDefined();
+    });
+
+    it('should delete the old image file when image is changed or removed', () => {
+      const mockUserData = path.join(__dirname, 'mock-user-data');
+      const imgDir = path.join(mockUserData, 'product-images');
+      
+      // Ensure test directory exists
+      if (!fs.existsSync(imgDir)) {
+        fs.mkdirSync(imgDir, { recursive: true });
+      }
+
+      // Create a fake original image file
+      const originalImgPath = path.join(imgDir, 'img_original.png');
+      fs.writeFileSync(originalImgPath, 'dummy image content');
+      expect(fs.existsSync(originalImgPath)).toBe(true);
+
+      // Create product in database with this image
+      const prodId = ProductController.create({
+        name: 'Product with Image',
+        barcode: '111122223333',
+        price_ht: 2.0,
+        price_ttc: 2.4,
+        tva_id: 1,
+        category_id: 1,
+        image_path: 'media://img_original.png',
+      });
+
+      expect(prodId).toBeDefined();
+
+      // Retrieve product to verify image
+      let prod = ProductController.getById(prodId);
+      expect(prod.image_path).toBe('media://img_original.png');
+
+      // Update product image to null (removed)
+      ProductController.update(prodId, {
+        name: 'Product with Image',
+        barcode: '111122223333',
+        price_ht: 2.0,
+        price_ttc: 2.4,
+        tva_id: 1,
+        category_id: 1,
+        image_path: null,
+      });
+
+      // Verify that the file was deleted from disk!
+      expect(fs.existsSync(originalImgPath)).toBe(false);
+
+      // Clean up after test
+      if (fs.existsSync(originalImgPath)) {
+        fs.unlinkSync(originalImgPath);
+      }
+      try {
+        fs.rmSync(mockUserData, { recursive: true, force: true });
+      } catch (e) {
+        // Ignore cleanup failure
+      }
     });
   });
 

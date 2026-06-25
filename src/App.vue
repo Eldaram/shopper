@@ -36,11 +36,11 @@
             :product="focusedProduct"
             :mode="isCreatingProduct ? 'create' : 'view'"
             :preselected-category-id="preselectedCategoryId"
-            :draft="draftProduct"
             :categories="categories"
             :tva-rates="tvaRates"
             @close="handleCloseDetail"
             @product-created="handleProductCreated"
+            @product-updated="handleProductUpdated"
           />
         </div>
 
@@ -109,11 +109,8 @@
     >
       <div class="context-menu-item" @click="handleCreateItemFromContextMenu">
         <span class="context-menu-icon">➕</span>
-        <span v-if="draftProduct">Reprise du brouillon</span>
-        <span v-else
-          >Ajouter un article
-          {{ contextMenu.targetCategory ? `dans ${contextMenu.targetCategory.name}` : '' }}</span
-        >
+        <span>Ajouter un article
+          {{ contextMenu.targetCategory ? `dans ${contextMenu.targetCategory.name}` : '' }}</span>
       </div>
     </div>
   </div>
@@ -144,7 +141,6 @@ export default {
       focusedProduct: null,
       searchQuery: '',
       isCreatingProduct: false,
-      draftProduct: null,
       preselectedCategoryId: null,
       contextMenu: {
         visible: false,
@@ -268,25 +264,29 @@ export default {
       return ids;
     },
     openCreateProduct(categoryId = null) {
-      if (this.draftProduct) {
-        this.preselectedCategoryId = this.draftProduct.category_id;
-      } else {
-        this.preselectedCategoryId = categoryId;
-      }
+      this.preselectedCategoryId = categoryId;
       this.isCreatingProduct = true;
       this.focusedProduct = null;
     },
     async confirmExitCreateMode() {
-      if (!this.isCreatingProduct) return true;
-
-      const isDirty = this.$refs.productDetail ? this.$refs.productDetail.isFormDirty() : false;
-      const isDraftLoaded = this.draftProduct !== null;
-      if (!isDirty && !isDraftLoaded) {
+      const detail = this.$refs.productDetail;
+      if (!detail) {
         this.isCreatingProduct = false;
         return true;
       }
 
-      let choice = 2; // Default to Exit and lost
+      if (detail.currentStateName === 'view') {
+        this.isCreatingProduct = false;
+        return true;
+      }
+
+      const isDirty = detail.isFormDirty();
+      if (!isDirty) {
+        this.isCreatingProduct = false;
+        return true;
+      }
+
+      let choice = 1; // Default to stay (1 is stay)
       if (
         window.electronAPI &&
         typeof window.electronAPI.showExitConfirmationDialog === 'function'
@@ -294,30 +294,17 @@ export default {
         choice = await window.electronAPI.showExitConfirmationDialog();
       } else {
         const res = window.confirm(
-          "Voulez-vous garder l'article en brouillon ?\n\nOK = Garder le brouillon\nAnnuler = Abandonner"
+          "Vous avez des modifications non enregistrées. Voulez-vous abandonner vos modifications ?"
         );
-        choice = res ? 0 : 2;
+        choice = res ? 0 : 1; // 0 = Abandonner, 1 = Rester
       }
 
       if (choice === 0) {
-        this.saveDraft();
         this.isCreatingProduct = false;
         return true;
-      } else if (choice === 1) {
-        return false; // Stay on page
       } else {
-        this.clearDraft();
-        this.isCreatingProduct = false;
-        return true;
+        return false; // Stay on page
       }
-    },
-    saveDraft() {
-      if (this.$refs.productDetail) {
-        this.draftProduct = this.$refs.productDetail.getFormData();
-      }
-    },
-    clearDraft() {
-      this.draftProduct = null;
     },
     async handleCloseDetail() {
       const proceed = await this.confirmExitCreateMode();
@@ -326,11 +313,14 @@ export default {
       this.isCreatingProduct = false;
     },
     async handleProductCreated(newProduct) {
-      this.clearDraft();
       this.isCreatingProduct = false;
       this.focusedProduct = null;
       await this.fetchData();
       this.selectedCategoryId = newProduct.category_id;
+    },
+    async handleProductUpdated(prodId) {
+      await this.fetchData();
+      this.focusedProduct = this.products.find(p => p.id === prodId) || null;
     },
     handleFabClick() {
       this.openCreateProduct(this.selectedCategoryId);
