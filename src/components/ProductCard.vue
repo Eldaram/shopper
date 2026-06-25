@@ -13,6 +13,13 @@
       </div>
     </div>
     <div class="card-overlay"></div>
+    <button
+      class="add-to-basket-btn"
+      @click.stop="$emit('add-to-basket', product)"
+      title="Ajouter au panier"
+    >
+      <span>+</span>
+    </button>
     <div class="card-content">
       <div class="card-name">{{ product.name }}</div>
       <div class="card-price">{{ formatPrice(product.price_ttc) }}</div>
@@ -29,7 +36,7 @@ export default {
       required: true,
     },
   },
-  emits: ['click'],
+  emits: ['click', 'add-to-basket'],
   computed: {
     imageUrl() {
       return this.product.image_path || this.product.image_url_openfoodfacts || null;

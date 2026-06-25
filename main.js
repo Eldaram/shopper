@@ -16,6 +16,7 @@ const categoryHandlers = require('./src/ipc/categoryHandlers');
 const productHandlers = require('./src/ipc/productHandlers');
 const tvaHandlers = require('./src/ipc/tvaHandlers');
 const imageHandlers = require('./src/ipc/imageHandlers');
+const dialogHandlers = require('./src/ipc/dialogHandlers');
 const MenuService = require('./src/services/MenuService');
 
 // Global error nets for main process
@@ -108,10 +109,20 @@ function initializeApp() {
     }
 
     // Register IPC handlers
-    bindHandlers(ipcMain, [categoryHandlers, productHandlers, tvaHandlers, imageHandlers]);
+    bindHandlers(ipcMain, [
+      categoryHandlers,
+      productHandlers,
+      tvaHandlers,
+      imageHandlers,
+      dialogHandlers,
+    ]);
 
     ipcMain.on('set-delete-menu-enabled', (event, enabled) => {
       MenuService.setDeleteProductEnabled(enabled);
+    });
+
+    ipcMain.on('set-clear-basket-enabled', (event, enabled) => {
+      MenuService.setClearBasketEnabled(enabled);
     });
 
     createWindow();

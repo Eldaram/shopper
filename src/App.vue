@@ -14,23 +14,31 @@
     <main class="workspace">
       <!-- Top Header Bar -->
       <header class="topbar">
-        <Breadcrumbs :path="breadcrumbsPath" @select-category="handleSelectCategory" />
+        <Breadcrumbs
+          :categories="categories"
+          :selected-category-id="selectedCategoryId"
+          :focused-product="focusedProduct"
+          :is-creating-product="isCreatingProduct"
+          @select-category="handleSelectCategory"
+        />
 
-        <!-- Search Bar (Visible only when not viewing product details) -->
-        <div v-if="!focusedProduct && !isCreatingProduct" class="search-container">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Rechercher un article..."
-            class="search-input"
-          />
+        <div class="topbar-right">
+          <!-- Search Bar (Visible only when not viewing product details, creation, or basket) -->
+          <SearchBar v-if="!focusedProduct && !isCreatingProduct && !basketState.isViewing" />
+
+          <!-- Basket Button: Accessible at all times -->
+          <BasketHeaderButton @click="handleToggleBasket" />
         </div>
       </header>
 
       <!-- Content Area -->
       <div class="content-area" @contextmenu="handleWorkspaceContextMenu">
-        <!-- Transition between grid view and details/creation view -->
-        <div v-if="focusedProduct || isCreatingProduct">
+        <!-- Transition between basket view, grid view and details/creation view -->
+        <div v-if="basketState.isViewing">
+          <BasketView :tva-rates="tvaRates" @close="handleCloseBasket" />
+        </div>
+
+        <div v-else-if="focusedProduct || isCreatingProduct">
           <ProductDetail
             ref="productDetail"
             :product="focusedProduct"
@@ -45,104 +53,62 @@
           />
         </div>
 
-        <div v-else>
-          <!-- Category Selection/Subcategories Grid -->
-          <div v-if="subcategories.length > 0 && !searchQuery.trim()" class="section-container">
-            <div class="section-header">
-              <h2 class="section-title">
-                <span>📁</span>
-                <span>{{
-                  selectedCategoryId === null ? 'Rayons principaux' : 'Sous-catégories'
-                }}</span>
-                <span class="section-title-badge">{{ subcategories.length }}</span>
-              </h2>
-            </div>
-            <div class="cards-grid">
-              <CategoryCard
-                v-for="sub in subcategories"
-                :key="sub.id"
-                :category="sub"
-                @click="handleSelectCategory(sub.id)"
-                @contextmenu="handleCategoryContextMenu($event, sub)"
-              />
-            </div>
-          </div>
-
-          <!-- Products Grid -->
-          <div class="section-container">
-            <div class="section-header">
-              <h2 class="section-title">
-                <span>📦</span>
-                <span>Articles</span>
-                <span class="section-title-badge">{{ filteredProducts.length }}</span>
-              </h2>
-            </div>
-
-            <div v-if="filteredProducts.length > 0" class="cards-grid">
-              <ProductCard
-                v-for="prod in filteredProducts"
-                :key="prod.id"
-                :product="prod"
-                @click="handleSelectProduct(prod)"
-                @contextmenu.prevent.stop="handleProductContextMenu($event, prod)"
-              />
-            </div>
-
-            <div v-else class="empty-state">
-              <span class="empty-state-icon">🔍</span>
-              <h3 class="empty-state-title">Aucun article trouvé</h3>
-              <p>Essayez de modifier vos filtres ou de taper une autre recherche.</p>
-            </div>
-          </div>
-        </div>
+        <CatalogueView
+          v-else
+          :categories="categories"
+          :products="products"
+          :selected-category-id="selectedCategoryId"
+          @select-category="handleSelectCategory"
+          @select-product="handleSelectProduct"
+          @contextmenu-category="handleCategoryContextMenu"
+          @contextmenu-product="handleProductContextMenu"
+        />
       </div>
     </main>
 
-    <!-- Floating Action Button (FAB) for fast item creation -->
-    <button class="fab-btn" @click="handleFabClick" title="Créer un article">
+    <!-- Floating Action Button (FAB) for fast item creation (hidden on basket page) -->
+    <button
+      v-if="!basketState.isViewing"
+      class="fab-btn"
+      @click="handleFabClick"
+      title="Créer un article"
+    >
       <span>+</span>
     </button>
 
     <!-- Custom Context Menu -->
-    <div
-      v-if="contextMenu.visible"
-      class="context-menu"
-      :style="{ top: contextMenu.y + 'px', left: contextMenu.x + 'px' }"
-    >
-      <template v-if="contextMenu.targetProduct">
-        <div class="context-menu-item" @click="handleDeleteProductFromContextMenu">
-          <span class="context-menu-icon">🗑️</span>
-          <span>Supprimer l'article</span>
-        </div>
-      </template>
-      <template v-else>
-        <div class="context-menu-item" @click="handleCreateItemFromContextMenu">
-          <span class="context-menu-icon">➕</span>
-          <span
-            >Ajouter un article
-            {{ contextMenu.targetCategory ? `dans ${contextMenu.targetCategory.name}` : '' }}</span
-          >
-        </div>
-      </template>
-    </div>
+    <ContextMenu
+      ref="contextMenu"
+      @delete-product="handleDeleteProductFromContextMenu"
+      @create-item="handleCreateItemFromContextMenu"
+    />
   </div>
 </template>
 
 <script>
 import Sidebar from './components/Sidebar.vue';
 import Breadcrumbs from './components/Breadcrumbs.vue';
-import CategoryCard from './components/CategoryCard.vue';
-import ProductCard from './components/ProductCard.vue';
 import ProductDetail from './components/ProductDetail.vue';
+import BasketView from './components/BasketView.vue';
+import CatalogueView from './components/CatalogueView.vue';
+import SearchBar from './components/SearchBar.vue';
+import BasketHeaderButton from './components/BasketHeaderButton.vue';
+import ContextMenu from './components/ContextMenu.vue';
+import { loadBrowserMocks as getBrowserMocks } from './utils/mockData';
+import { basketState, confirmAndClearBasket } from './utils/basketStore';
+import catalogMethods from './utils/catalogManager';
 
 export default {
   name: 'App',
   components: {
     Sidebar,
     Breadcrumbs,
-    CategoryCard,
-    ProductCard,
     ProductDetail,
+    BasketView,
+    CatalogueView,
+    SearchBar,
+    BasketHeaderButton,
+    ContextMenu,
   },
   data() {
     return {
@@ -151,16 +117,9 @@ export default {
       tvaRates: [],
       selectedCategoryId: null,
       focusedProduct: null,
-      searchQuery: '',
       isCreatingProduct: false,
       preselectedCategoryId: null,
-      contextMenu: {
-        visible: false,
-        x: 0,
-        y: 0,
-        targetCategory: null,
-        targetProduct: null,
-      },
+      basketState,
     };
   },
   computed: {
@@ -176,59 +135,14 @@ export default {
       }
       return current.id;
     },
-    breadcrumbsPath() {
-      const path = [{ name: 'Accueil', type: 'home' }];
-      if (this.selectedCategoryId !== null) {
-        const catPath = [];
-        let current = this.categories.find((c) => c.id === this.selectedCategoryId);
-        while (current) {
-          catPath.push({ id: current.id, name: current.name, type: 'category' });
-          current = current.parent_id
-            ? this.categories.find((c) => c.id === current.parent_id)
-            : null;
-        }
-        path.push(...catPath.reverse());
-      }
-      if (this.focusedProduct !== null) {
-        path.push({ name: this.focusedProduct.name, type: 'product' });
-      } else if (this.isCreatingProduct) {
-        path.push({ name: "Création d'un article", type: 'product' });
-      }
-      return path;
-    },
-    subcategories() {
-      if (this.selectedCategoryId === null) {
-        // At the root, list main categories
-        return this.categories.filter((c) => c.parent_id === null);
-      }
-      return this.categories.filter((c) => c.parent_id === this.selectedCategoryId);
-    },
-    filteredProducts() {
-      let result = this.products;
-
-      // Filter by category recursively
-      if (this.selectedCategoryId !== null) {
-        const allowedIds = this.getCategoryAndDescendantIds(this.selectedCategoryId);
-        result = result.filter((p) => allowedIds.includes(p.category_id));
-      }
-
-      // Filter by search query
-      if (this.searchQuery && this.searchQuery.trim() !== '') {
-        const query = this.searchQuery.toLowerCase().trim();
-        result = result.filter(
-          (p) =>
-            p.name.toLowerCase().includes(query) ||
-            (p.barcode && p.barcode.includes(query)) ||
-            (p.category_name && p.category_name.toLowerCase().includes(query))
-        );
-      }
-
-      return result;
+    contextMenu() {
+      return (
+        this.$refs.contextMenu || { visible: false, targetProduct: null, targetCategory: null }
+      );
     },
   },
   async mounted() {
     await this.fetchData();
-    window.addEventListener('click', this.closeContextMenu);
     if (window.electronAPI && typeof window.electronAPI.onMenuCreateProduct === 'function') {
       window.electronAPI.onMenuCreateProduct(() => {
         this.openCreateProduct(this.selectedCategoryId);
@@ -241,11 +155,21 @@ export default {
         }
       });
     }
+    if (window.electronAPI && typeof window.electronAPI.onMenuClearBasket === 'function') {
+      window.electronAPI.onMenuClearBasket(() => {
+        confirmAndClearBasket();
+      });
+    }
+    if (window.electronAPI && typeof window.electronAPI.setClearBasketEnabled === 'function') {
+      window.electronAPI.setClearBasketEnabled(this.basketState.items.length > 0);
+    }
   },
   beforeUnmount() {
-    window.removeEventListener('click', this.closeContextMenu);
     if (window.electronAPI && typeof window.electronAPI.setDeleteMenuEnabled === 'function') {
       window.electronAPI.setDeleteMenuEnabled(false);
+    }
+    if (window.electronAPI && typeof window.electronAPI.setClearBasketEnabled === 'function') {
+      window.electronAPI.setClearBasketEnabled(false);
     }
   },
   watch: {
@@ -259,44 +183,28 @@ export default {
     },
   },
   methods: {
-    async fetchData() {
-      try {
-        if (window.electronAPI && typeof window.electronAPI.getCategories === 'function') {
-          this.categories = await window.electronAPI.getCategories();
-          this.products = await window.electronAPI.getProducts();
-          this.tvaRates = await window.electronAPI.getTvaRates();
-        } else {
-          console.warn('window.electronAPI not found. Loading browser mock data...');
-          this.loadBrowserMocks();
-        }
-      } catch (err) {
-        console.error('Failed to load catalogue data:', err);
-      }
-    },
+    ...catalogMethods,
     async handleSelectCategory(catId) {
+      if (this.basketState.isViewing) {
+        this.basketState.isViewing = false;
+      }
       const proceed = await this.confirmExitCreateMode();
       if (!proceed) return;
       this.selectedCategoryId = catId;
       this.focusedProduct = null;
     },
     async handleSelectProduct(prod) {
+      if (this.basketState.isViewing) {
+        this.basketState.isViewing = false;
+      }
       const proceed = await this.confirmExitCreateMode();
       if (!proceed) return;
       this.focusedProduct = prod;
     },
-    getCategoryAndDescendantIds(catId) {
-      const ids = [catId];
-      const findChildren = (parentId) => {
-        const children = this.categories.filter((c) => c.parent_id === parentId);
-        for (const child of children) {
-          ids.push(child.id);
-          findChildren(child.id);
-        }
-      };
-      findChildren(catId);
-      return ids;
-    },
     openCreateProduct(categoryId = null) {
+      if (this.basketState.isViewing) {
+        this.basketState.isViewing = false;
+      }
       this.preselectedCategoryId = categoryId;
       this.isCreatingProduct = true;
       this.focusedProduct = null;
@@ -345,169 +253,51 @@ export default {
       this.focusedProduct = null;
       this.isCreatingProduct = false;
     },
-    async handleProductCreated(newProduct) {
-      this.isCreatingProduct = false;
-      this.focusedProduct = null;
-      await this.fetchData();
-      this.selectedCategoryId = newProduct.category_id;
-    },
-    async handleProductUpdated(prodId) {
-      await this.fetchData();
-      this.focusedProduct = this.products.find((p) => p.id === prodId) || null;
-    },
     handleFabClick() {
       this.openCreateProduct(this.selectedCategoryId);
     },
+    loadBrowserMocks() {
+      const mocks = getBrowserMocks();
+      this.categories = mocks.categories;
+      this.products = mocks.products;
+      this.tvaRates = mocks.tvaRates;
+    },
+    async handleToggleBasket() {
+      const proceed = await this.confirmExitCreateMode();
+      if (!proceed) return;
+      this.basketState.isViewing = !this.basketState.isViewing;
+      if (this.basketState.isViewing) {
+        this.focusedProduct = null;
+        this.isCreatingProduct = false;
+      }
+    },
+    handleCloseBasket() {
+      this.basketState.isViewing = false;
+    },
     handleCategoryContextMenu(event, category) {
-      this.contextMenu = {
-        visible: true,
-        x: event.clientX,
-        y: event.clientY,
-        targetCategory: category,
-        targetProduct: null,
-      };
+      if (this.$refs.contextMenu) {
+        this.$refs.contextMenu.showForCategory(event, category);
+      }
     },
     handleProductContextMenu(event, product) {
-      this.contextMenu = {
-        visible: true,
-        x: event.clientX,
-        y: event.clientY,
-        targetCategory: null,
-        targetProduct: product,
-      };
+      if (this.$refs.contextMenu) {
+        this.$refs.contextMenu.showForProduct(event, product);
+      }
     },
     handleWorkspaceContextMenu(event) {
-      if (
-        event.target.tagName === 'INPUT' ||
-        event.target.tagName === 'SELECT' ||
-        event.target.tagName === 'BUTTON'
-      ) {
-        return;
-      }
-
-      let currentCategory = null;
-      if (this.selectedCategoryId !== null) {
-        currentCategory = this.categories.find((c) => c.id === this.selectedCategoryId) || null;
-      }
-
-      this.contextMenu = {
-        visible: true,
-        x: event.clientX,
-        y: event.clientY,
-        targetCategory: currentCategory,
-        targetProduct: null,
-      };
-    },
-    handleCreateItemFromContextMenu() {
-      this.openCreateProduct(this.contextMenu.targetCategory?.id || null);
-      this.closeContextMenu();
-    },
-    async handleDeleteProductFromContextMenu() {
-      const product = this.contextMenu.targetProduct;
-      this.closeContextMenu();
-      if (product) {
-        await this.deleteProduct(product);
+      if (this.$refs.contextMenu) {
+        this.$refs.contextMenu.showForWorkspace(event, this.selectedCategoryId, this.categories);
       }
     },
-    closeContextMenu() {
-      this.contextMenu.visible = false;
-      this.contextMenu.targetProduct = null;
-      this.contextMenu.targetCategory = null;
+    handleCreateItemFromContextMenu(category) {
+      const cat = category || this.contextMenu.targetCategory;
+      this.openCreateProduct(cat?.id || null);
     },
-    async deleteFocusedProduct() {
-      if (this.focusedProduct) {
-        await this.deleteProduct(this.focusedProduct);
+    async handleDeleteProductFromContextMenu(product) {
+      const prod = product || this.contextMenu.targetProduct;
+      if (prod) {
+        await this.deleteProduct(prod);
       }
-    },
-    async deleteProduct(product) {
-      if (!product) return;
-
-      let confirmed = false;
-      if (window.electronAPI && typeof window.electronAPI.confirmDeleteProduct === 'function') {
-        confirmed = await window.electronAPI.confirmDeleteProduct(product.name);
-      } else {
-        confirmed = window.confirm(`Voulez-vous vraiment supprimer le produit "${product.name}" ?`);
-      }
-
-      if (confirmed) {
-        try {
-          if (window.electronAPI && typeof window.electronAPI.deleteProduct === 'function') {
-            await window.electronAPI.deleteProduct(product.id);
-          } else {
-            console.log('Mock: Product deleted', product.id);
-            const idx = this.products.findIndex((p) => p.id === product.id);
-            if (idx !== -1) {
-              this.products.splice(idx, 1);
-            }
-          }
-          if (this.focusedProduct && this.focusedProduct.id === product.id) {
-            this.focusedProduct = null;
-          }
-          await this.fetchData();
-        } catch (err) {
-          console.error('Error deleting product:', err);
-          alert(`Erreur lors de la suppression: ${err.message}`);
-        }
-      }
-    },
-    loadBrowserMocks() {
-      this.categories = [
-        {
-          id: 1,
-          name: 'Épicerie',
-          parent_id: null,
-          image_path:
-            'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80',
-        },
-        {
-          id: 2,
-          name: 'Boissons',
-          parent_id: null,
-          image_path:
-            'https://images.unsplash.com/photo-1527960650-26df2cef137c?auto=format&fit=crop&w=400&q=80',
-        },
-        {
-          id: 8,
-          name: 'Pâtes & Riz',
-          parent_id: 1,
-          image_path:
-            'https://images.unsplash.com/photo-1551462147-ff29053bfc14?auto=format&fit=crop&w=400&q=80',
-        },
-        {
-          id: 9,
-          name: 'Sodas',
-          parent_id: 2,
-          image_path:
-            'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=400&q=80',
-        },
-      ];
-      this.products = [
-        {
-          id: 1,
-          barcode: '5449000000996',
-          name: 'Coca-Cola 1.5L',
-          price_ht: 1.5,
-          price_ttc: 1.8,
-          tva_id: 1,
-          category_id: 9,
-          category_name: 'Sodas',
-          image_url_openfoodfacts:
-            'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=400&q=80',
-        },
-        {
-          id: 2,
-          barcode: '3168930009078',
-          name: 'Chips Lays Nature 150g',
-          price_ht: 1.25,
-          price_ttc: 1.5,
-          tva_id: 1,
-          category_id: 1,
-          category_name: 'Épicerie',
-          image_url_openfoodfacts:
-            'https://images.unsplash.com/photo-1566478989037-eec170784d20?auto=format&fit=crop&w=400&q=80',
-        },
-      ];
-      this.tvaRates = [{ id: 1, name: 'Taux normal (20%)', rate: 20.0, is_active: 1 }];
     },
   },
 };

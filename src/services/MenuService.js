@@ -45,6 +45,17 @@ class MenuService {
               }
             },
           },
+          {
+            id: 'clear-basket-item',
+            label: 'Vider le panier',
+            accelerator: 'CmdOrCtrl+Shift+Delete',
+            enabled: false,
+            click: () => {
+              if (window && !window.isDestroyed()) {
+                window.webContents.send('menu-clear-basket');
+              }
+            },
+          },
           { type: 'separator' },
           isMac ? { role: 'close', label: 'Fermer' } : { role: 'quit', label: 'Quitter' },
         ],
@@ -100,6 +111,16 @@ class MenuService {
     const menu = Menu.getApplicationMenu();
     if (menu) {
       const item = menu.getMenuItemById('delete-product-item');
+      if (item) {
+        item.enabled = enabled;
+      }
+    }
+  }
+
+  setClearBasketEnabled(enabled) {
+    const menu = Menu.getApplicationMenu();
+    if (menu) {
+      const item = menu.getMenuItemById('clear-basket-item');
       if (item) {
         item.enabled = enabled;
       }

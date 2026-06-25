@@ -18,18 +18,60 @@
 </template>
 
 <script>
+import { basketState } from '../utils/basketStore';
+
 export default {
   name: 'Breadcrumbs',
   props: {
-    path: {
+    categories: {
       type: Array,
       required: true,
     },
+    selectedCategoryId: {
+      type: [Number, null],
+      default: null,
+    },
+    focusedProduct: {
+      type: Object,
+      default: null,
+    },
+    isCreatingProduct: {
+      type: Boolean,
+      default: false,
+    },
   },
-  emits: ['select-category', 'close-product'],
+  emits: ['select-category'],
+  data() {
+    return {
+      basketState,
+    };
+  },
+  computed: {
+    path() {
+      const result = [{ name: 'Accueil', type: 'home' }];
+      if (this.selectedCategoryId !== null) {
+        const catPath = [];
+        let current = this.categories.find((c) => c.id === this.selectedCategoryId);
+        while (current) {
+          catPath.push({ id: current.id, name: current.name, type: 'category' });
+          current = current.parent_id
+            ? this.categories.find((c) => c.id === current.parent_id)
+            : null;
+        }
+        result.push(...catPath.reverse());
+      }
+      if (this.basketState.isViewing) {
+        result.push({ name: 'Panier', type: 'basket' });
+      } else if (this.focusedProduct !== null) {
+        result.push({ name: this.focusedProduct.name, type: 'product' });
+      } else if (this.isCreatingProduct) {
+        result.push({ name: "Création d'un article", type: 'product' });
+      }
+      return result;
+    },
+  },
   methods: {
     handleClick(item, index) {
-      // If it's the active/last item, do nothing
       if (index === this.path.length - 1) return;
 
       if (item.type === 'home') {
