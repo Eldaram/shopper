@@ -13,6 +13,7 @@ import {
   handleUpdateBasketQuantity,
   handleRemoveBasketItem,
   clearBasket,
+  handleValidateSale,
 } from '../utils/basketStore';
 
 // Mock electron API globally
@@ -25,6 +26,7 @@ const mockElectronAPI = {
   onMenuCreateProduct: vi.fn(),
   onMenuDeleteProduct: vi.fn(),
   onMenuClearBasket: vi.fn(),
+  checkout: vi.fn(),
 };
 
 globalThis.window = globalThis.window || {};
@@ -110,6 +112,33 @@ describe('Shopping Basket Tests', () => {
       clearBasket();
       expect(basketState.items).toEqual([]);
       expect(mockElectronAPI.setClearBasketEnabled).toHaveBeenLastCalledWith(false);
+    });
+
+    it('should validate sale, call checkout, clear basket and close basket view', async () => {
+      mockElectronAPI.checkout.mockResolvedValueOnce(45);
+
+      addToBasket(product1);
+      handleUpdateBasketQuantity(product1.id, 3);
+
+      basketState.isViewing = true;
+
+      await handleValidateSale();
+
+      expect(mockElectronAPI.checkout).toHaveBeenCalledWith({
+        customer_id: null,
+        lines: [
+          {
+            product_id: 1,
+            quantity: 3,
+            discount_value: 0,
+            is_discount_percentage: false,
+          },
+        ],
+        delivery_address: null,
+      });
+
+      expect(basketState.items).toEqual([]);
+      expect(basketState.isViewing).toBe(false);
     });
   });
 
