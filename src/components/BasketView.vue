@@ -148,7 +148,8 @@ export default {
     },
     totalTtc() {
       return this.basket.reduce(
-        (sum, item) => sum + (parseFloat(item.product.price_ttc) || 0) * (parseInt(item.quantity) || 0),
+        (sum, item) =>
+          sum + (parseFloat(item.product.price_ttc) || 0) * (parseInt(item.quantity) || 0),
         0
       );
     },

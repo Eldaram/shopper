@@ -19,7 +19,10 @@
 
         <div class="topbar-right">
           <!-- Search Bar (Visible only when not viewing product details, creation, or basket) -->
-          <div v-if="!focusedProduct && !isCreatingProduct && !isViewingBasket" class="search-container">
+          <div
+            v-if="!focusedProduct && !isCreatingProduct && !isViewingBasket"
+            class="search-container"
+          >
             <input
               v-model="searchQuery"
               type="text"
@@ -127,7 +130,12 @@
     </main>
 
     <!-- Floating Action Button (FAB) for fast item creation (hidden on basket page) -->
-    <button v-if="!isViewingBasket" class="fab-btn" @click="handleFabClick" title="Créer un article">
+    <button
+      v-if="!isViewingBasket"
+      class="fab-btn"
+      @click="handleFabClick"
+      title="Créer un article"
+    >
       <span>+</span>
     </button>
 
@@ -556,7 +564,7 @@ export default {
       if (window.electronAPI && typeof window.electronAPI.confirmClearBasket === 'function') {
         confirmed = await window.electronAPI.confirmClearBasket();
       } else {
-        confirmed = window.confirm("Voulez vous vraiment vider tout le panier ?");
+        confirmed = window.confirm('Voulez vous vraiment vider tout le panier ?');
       }
       if (confirmed) {
         this.clearBasket();
@@ -569,8 +577,15 @@ export default {
       }
     },
     handleValidateSale() {
-      const formattedTotal = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(
-        this.basket.reduce((sum, item) => sum + (parseFloat(item.product.price_ttc) || 0) * (parseInt(item.quantity) || 0), 0)
+      const formattedTotal = new Intl.NumberFormat('fr-FR', {
+        style: 'currency',
+        currency: 'EUR',
+      }).format(
+        this.basket.reduce(
+          (sum, item) =>
+            sum + (parseFloat(item.product.price_ttc) || 0) * (parseInt(item.quantity) || 0),
+          0
+        )
       );
       alert(`Vente validée d'un montant de ${formattedTotal} !`);
       this.clearBasket();

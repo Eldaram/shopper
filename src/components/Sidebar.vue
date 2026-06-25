@@ -26,7 +26,9 @@
             :key="category.id"
             class="nav-item"
             :class="{
-              active: !isViewingBasket && (category.id === selectedCategoryId || category.id === activeAncestorId),
+              active:
+                !isViewingBasket &&
+                (category.id === selectedCategoryId || category.id === activeAncestorId),
             }"
             @click="$emit('select-category', category.id)"
             @contextmenu.prevent="$emit('contextmenu-category', $event, category)"
