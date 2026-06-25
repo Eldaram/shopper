@@ -10,7 +10,7 @@ Object.defineProperty(app.config.globalProperties, '$currentLang', {
   get() {
     return i18n.currentLang.value;
   },
-  configurable: true
+  configurable: true,
 });
 
 i18n.loadLanguageInfo().then(() => {

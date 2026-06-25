@@ -66,7 +66,7 @@ const TRANSLATION_KEYS = [
   'clear_basket_title',
   'clear_basket_msg',
   'clear_basket_confirm',
-  'sale_validated_msg'
+  'sale_validated_msg',
 ];
 
 // Fallback dictionary for testing and browser mock environments
@@ -93,7 +93,7 @@ const FALLBACK_TRANSLATIONS = {
     total_amount_ttc: 'Montant total (TTC) :',
     validate_sale: 'Valider la vente',
     delete_item: "Supprimer l'article",
-    add_item: "Ajouter un article",
+    add_item: 'Ajouter un article',
     back_to_catalogue: 'Retour au catalogue',
     view_mode: '🔍 Consultation',
     edit_mode: '✏️ Édition',
@@ -128,16 +128,18 @@ const FALLBACK_TRANSLATIONS = {
     choose_language: 'Choisir la langue',
     unsaved_changes_title: 'Modifications non enregistrées',
     unsaved_changes_msg: 'Voulez-vous abandonner vos modifications ?',
-    unsaved_changes_detail: 'Si vous quittez, toutes les modifications non enregistrées seront perdues.',
+    unsaved_changes_detail:
+      'Si vous quittez, toutes les modifications non enregistrées seront perdues.',
     abandon: 'Abandonner',
     stay: 'Rester',
     delete_product_title: 'Suppression de produit',
     delete_product_msg: 'Voulez-vous vraiment supprimer le produit "{productName}" ?',
-    delete_product_detail: "Cette action est irréversible (le produit sera masqué de l'inventaire).",
+    delete_product_detail:
+      "Cette action est irréversible (le produit sera masqué de l'inventaire).",
     clear_basket_title: 'Vider le panier',
     clear_basket_msg: 'Voulez vous vraiment vider tout le panier ?',
     clear_basket_confirm: 'Vider le panier',
-    sale_validated_msg: "Vente validée d'un montant de {amount} !"
+    sale_validated_msg: "Vente validée d'un montant de {amount} !",
   },
   en: {
     categories: 'Categories',
@@ -201,19 +203,20 @@ const FALLBACK_TRANSLATIONS = {
     stay: 'Stay',
     delete_product_title: 'Product Deletion',
     delete_product_msg: 'Are you sure you want to delete the product "{productName}"?',
-    delete_product_detail: 'This action is irreversible (the product will be hidden from the inventory).',
+    delete_product_detail:
+      'This action is irreversible (the product will be hidden from the inventory).',
     clear_basket_title: 'Clear basket',
     clear_basket_msg: 'Are you sure you want to empty the entire basket?',
     clear_basket_confirm: 'Clear basket',
-    sale_validated_msg: 'Sale validated for an amount of {amount}!'
-  }
+    sale_validated_msg: 'Sale validated for an amount of {amount}!',
+  },
 };
 
 const translations = reactive({});
 const currentLang = ref('fr');
 const availableLanguages = ref([
   { code: 'fr', name: 'Français', flag: '🇫🇷' },
-  { code: 'en', name: 'English', flag: '🇬🇧' }
+  { code: 'en', name: 'English', flag: '🇬🇧' },
 ]);
 
 export const i18n = {
@@ -262,7 +265,10 @@ export const i18n = {
           })
         );
       } catch (err) {
-        console.error('i18n: Failed to load language info from Electron main, falling back to local dictionaries', err);
+        console.error(
+          'i18n: Failed to load language info from Electron main, falling back to local dictionaries',
+          err
+        );
         this.loadFallbackTranslations();
       }
     } else {
@@ -282,7 +288,7 @@ export const i18n = {
       try {
         await window.electronAPI.setLanguage(code);
         currentLang.value = code;
-        
+
         // Re-read all translations in the cache
         const keys = Object.keys(translations);
         await Promise.all(

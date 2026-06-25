@@ -1,7 +1,9 @@
 <template>
   <div class="detail-container">
     <div class="detail-header">
-      <button class="btn-back" @click="handleCancel"><span>←</span> {{ $t('back_to_catalogue') }}</button>
+      <button class="btn-back" @click="handleCancel">
+        <span>←</span> {{ $t('back_to_catalogue') }}
+      </button>
       <span class="detail-badge-mode">{{ activeState ? activeState.getBadgeText() : '' }}</span>
     </div>
 
@@ -37,9 +39,9 @@
           <template v-if="activeState && !activeState.isViewMode()">
             <span class="upload-icon">📷</span>
             <span class="upload-text"
-              >{{ $t('choose_image') }}<br /><span style="font-size: 11px; opacity: 0.7"
-                >{{ $t('or_drag_drop') }}</span
-              ></span
+              >{{ $t('choose_image') }}<br /><span style="font-size: 11px; opacity: 0.7">{{
+                $t('or_drag_drop')
+              }}</span></span
             >
           </template>
           <template v-else>
@@ -166,23 +168,30 @@
         <div class="detail-actions">
           <!-- View mode buttons -->
           <template v-if="activeState && activeState.isViewMode()">
-            <BaseButton variant="success" @click="addToBasket(product)"
-              >{{ $t('add_to_basket') }}</BaseButton
-            >
-            <BaseButton variant="secondary" @click="activeState.handleEdit()">{{ $t('edit') }}</BaseButton>
+            <BaseButton variant="success" @click="addToBasket(product)">{{
+              $t('add_to_basket')
+            }}</BaseButton>
+            <BaseButton variant="secondary" @click="activeState.handleEdit()">{{
+              $t('edit')
+            }}</BaseButton>
             <BaseButton variant="danger" @click="$emit('delete')">{{ $t('delete') }}</BaseButton>
             <BaseButton variant="primary" :disabled="true">{{ $t('save') }}</BaseButton>
           </template>
 
           <!-- Edit/Create mode buttons -->
           <template v-else-if="activeState">
-            <BaseButton variant="secondary" @click="activeState.handleCancel()">{{ $t('cancel') }}</BaseButton>
-            <BaseButton v-if="!activeState.isCreateMode()" variant="danger" @click="$emit('delete')"
+            <BaseButton variant="secondary" @click="activeState.handleCancel()">{{
+              $t('cancel')
+            }}</BaseButton>
+            <BaseButton
+              v-if="!activeState.isCreateMode()"
+              variant="danger"
+              @click="$emit('delete')"
               >{{ $t('delete') }}</BaseButton
             >
-            <BaseButton variant="primary" @click="activeState.handleSubmit()"
-              >{{ $t('save') }}</BaseButton
-            >
+            <BaseButton variant="primary" @click="activeState.handleSubmit()">{{
+              $t('save')
+            }}</BaseButton>
           </template>
         </div>
       </div>
@@ -723,9 +732,7 @@ export default {
       ) {
         choice = await window.electronAPI.showExitConfirmationDialog();
       } else {
-        const res = window.confirm(
-          this.vm.$t('unsaved_changes_msg')
-        );
+        const res = window.confirm(this.vm.$t('unsaved_changes_msg'));
         choice = res ? 0 : 1; // 0 = Abandonner, 1 = Rester
       }
       return choice === 0;

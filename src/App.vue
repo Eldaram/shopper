@@ -239,9 +239,7 @@ export default {
       ) {
         choice = await window.electronAPI.showExitConfirmationDialog();
       } else {
-        const res = window.confirm(
-          this.$t('unsaved_changes_msg')
-        );
+        const res = window.confirm(this.$t('unsaved_changes_msg'));
         choice = res ? 0 : 1; // 0 = Abandonner, 1 = Rester
       }
 

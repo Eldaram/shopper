@@ -6,7 +6,8 @@ module.exports = {
     const mainWindow = mainModule.getMainWindow ? mainModule.getMainWindow() : null;
 
     const TranslationController = require('../controllers/TranslationController');
-    const t = (key) => TranslationController.getText(TranslationController.getCurrentLanguage(), key);
+    const t = (key) =>
+      TranslationController.getText(TranslationController.getCurrentLanguage(), key);
 
     const result = await dialog.showMessageBox(mainWindow, {
       type: 'warning',
@@ -25,7 +26,8 @@ module.exports = {
     const mainWindow = mainModule.getMainWindow ? mainModule.getMainWindow() : null;
 
     const TranslationController = require('../controllers/TranslationController');
-    const t = (key) => TranslationController.getText(TranslationController.getCurrentLanguage(), key);
+    const t = (key) =>
+      TranslationController.getText(TranslationController.getCurrentLanguage(), key);
 
     const result = await dialog.showMessageBox(mainWindow, {
       type: 'warning',
@@ -44,7 +46,8 @@ module.exports = {
     const mainWindow = mainModule.getMainWindow ? mainModule.getMainWindow() : null;
 
     const TranslationController = require('../controllers/TranslationController');
-    const t = (key) => TranslationController.getText(TranslationController.getCurrentLanguage(), key);
+    const t = (key) =>
+      TranslationController.getText(TranslationController.getCurrentLanguage(), key);
 
     const result = await dialog.showMessageBox(mainWindow, {
       type: 'warning',

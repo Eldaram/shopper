@@ -5,7 +5,9 @@
       <div class="section-header">
         <h2 class="section-title">
           <span>📁</span>
-          <span>{{ selectedCategoryId === null ? $t('main_categories') : $t('subcategories') }}</span>
+          <span>{{
+            selectedCategoryId === null ? $t('main_categories') : $t('subcategories')
+          }}</span>
           <span class="section-title-badge">{{ subcategoriesList.length }}</span>
         </h2>
       </div>

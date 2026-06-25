@@ -32,7 +32,7 @@ const mockElectron = {
         send: vi.fn(),
       };
     }
-  }
+  },
 };
 
 const originalRequire = Module.prototype.require;

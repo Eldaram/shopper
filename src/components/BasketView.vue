@@ -123,7 +123,9 @@
             <span>{{ $t('total_amount_ttc') }}</span>
             <span class="summary-total-price">{{ formatPrice(totalTtc) }}</span>
           </div>
-          <button class="btn-validate-sale" @click="handleValidateSale">{{ $t('validate_sale') }}</button>
+          <button class="btn-validate-sale" @click="handleValidateSale">
+            {{ $t('validate_sale') }}
+          </button>
         </div>
       </div>
     </div>
