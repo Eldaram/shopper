@@ -26,6 +26,15 @@
           <!-- Search Bar (Visible only when not viewing product details, creation, or basket) -->
           <SearchBar v-if="!focusedProduct && !isCreatingProduct && !basketState.isViewing" />
 
+          <!-- Offline Indicator -->
+          <span
+            v-if="isOffline"
+            class="offline-indicator"
+            title="Application hors ligne - Les recherches OpenFoodFacts sont désactivées / App is offline - OpenFoodFacts search is disabled"
+          >
+            ✈️
+          </span>
+
           <!-- Language Selector -->
           <LanguageSelector />
 
@@ -49,6 +58,7 @@
             :preselected-category-id="preselectedCategoryId"
             :categories="categories"
             :tva-rates="tvaRates"
+            :is-offline="isOffline"
             @close="handleCloseDetail"
             @product-created="handleProductCreated"
             @product-updated="handleProductUpdated"
@@ -126,6 +136,7 @@ export default {
       isCreatingProduct: false,
       preselectedCategoryId: null,
       basketState,
+      isOffline: !navigator.onLine,
     };
   },
   computed: {
@@ -148,6 +159,25 @@ export default {
     },
   },
   async mounted() {
+    if (window.electronAPI && typeof window.electronAPI.onOfflineStatusChanged === 'function') {
+      window.electronAPI.onOfflineStatusChanged((online) => {
+        this.isOffline = !online;
+      });
+    }
+
+    if (window.electronAPI && typeof window.electronAPI.isOnline === 'function') {
+      try {
+        const online = await window.electronAPI.isOnline();
+        this.isOffline = !online;
+      } catch (err) {
+        this.isOffline = !navigator.onLine;
+      }
+    } else {
+      this.isOffline = !navigator.onLine;
+      window.addEventListener('online', this.updateOnlineStatus);
+      window.addEventListener('offline', this.updateOnlineStatus);
+    }
+
     await this.fetchData();
     if (window.electronAPI && typeof window.electronAPI.onMenuCreateProduct === 'function') {
       window.electronAPI.onMenuCreateProduct(() => {
@@ -174,6 +204,10 @@ export default {
     }
   },
   beforeUnmount() {
+    if (!window.electronAPI) {
+      window.removeEventListener('online', this.updateOnlineStatus);
+      window.removeEventListener('offline', this.updateOnlineStatus);
+    }
     if (window.electronAPI && typeof window.electronAPI.setDeleteItemState === 'function') {
       window.electronAPI.setDeleteItemState(false, null);
     }
@@ -196,6 +230,9 @@ export default {
     },
   },
   methods: {
+    updateOnlineStatus() {
+      this.isOffline = !navigator.onLine;
+    },
     ...catalogMethods,
     async handleSelectCategory(catId) {
       if (this.basketState.isViewing) {

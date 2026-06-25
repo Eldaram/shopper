@@ -41,4 +41,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getText: (textCode) => ipcRenderer.invoke('get-text', textCode),
   getCurrentLanguage: () => ipcRenderer.invoke('get-current-language'),
   setLanguage: (code) => ipcRenderer.invoke('set-current-language', code),
+  searchOffByBarcode: (barcode) => ipcRenderer.invoke('search-off-by-barcode', barcode),
+  searchOffByName: (query) => ipcRenderer.invoke('search-off-by-name', query),
+  isOnline: () => ipcRenderer.invoke('is-online'),
+  onOfflineStatusChanged: (callback) =>
+    ipcRenderer.on('offline-status-changed', (_event, value) => callback(value)),
 });
