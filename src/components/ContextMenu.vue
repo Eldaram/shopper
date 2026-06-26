@@ -11,7 +11,9 @@
         <span class="context-menu-icon">➕</span>
         <span>
           <template v-if="hasDraft">{{ $t('resume_draft') }}</template>
-          <template v-else>{{ $t('add_item') + (targetCategory ? ` ${$t('in')} ${targetCategory.name}` : '') }}</template>
+          <template v-else>{{
+            $t('add_item') + (targetCategory ? ` ${$t('in')} ${targetCategory.name}` : '')
+          }}</template>
         </span>
       </div>
       <div

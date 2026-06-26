@@ -383,7 +383,10 @@ describe('Product Manual Creation & Edition Tests', () => {
 
       // With draftProduct null
       wrapper.vm.draftState.draftProduct = null;
-      wrapper.vm.handleCategoryContextMenu({ clientX: 100, clientY: 100, preventDefault: () => {} }, { id: 2, name: 'Boissons' });
+      wrapper.vm.handleCategoryContextMenu(
+        { clientX: 100, clientY: 100, preventDefault: () => {} },
+        { id: 2, name: 'Boissons' }
+      );
       await wrapper.vm.$nextTick();
       expect(wrapper.text()).toContain('Ajouter un article dans Boissons');
       expect(wrapper.text()).not.toContain('Reprise du brouillon');
