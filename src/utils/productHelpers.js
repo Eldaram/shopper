@@ -48,6 +48,7 @@ export function checkIfFormDirty(localProduct, initial, parser) {
 
 export function applyBarcodeResult(localProduct, result) {
   localProduct.name = result.name;
+  localProduct.barcode = result.barcode || localProduct.barcode || '';
   localProduct.image_preview = result.image_url || result.image_preview;
   localProduct.image_url_openfoodfacts = result.image_url || result.image_url_openfoodfacts;
   localProduct.is_openfoodfacts = 1;
