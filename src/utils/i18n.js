@@ -112,6 +112,10 @@ const TRANSLATION_KEYS = [
   'choose_theme',
   'theme_dark',
   'theme_light',
+  'barcode_scanner_tooltip',
+  'barcode_scanner_modal_title',
+  'barcode_scanner_modal_desc',
+  'barcode_scanner_close',
 ];
 
 // Fallback dictionary for testing and browser mock environments
@@ -231,6 +235,11 @@ const FALLBACK_TRANSLATIONS = {
     choose_theme: 'Choisir le thème',
     theme_dark: 'Sombre',
     theme_light: 'Clair',
+    barcode_scanner_tooltip: 'Scanner de codes-barres (Réseau local)',
+    barcode_scanner_modal_title: 'Connexion du scanner de codes-barres',
+    barcode_scanner_modal_desc:
+      "Scannez ce code QR avec l'application Android pour utiliser votre téléphone comme scanner de codes-barres.",
+    barcode_scanner_close: 'Fermer la connexion',
   },
   en: {
     categories: 'Categories',
@@ -346,6 +355,11 @@ const FALLBACK_TRANSLATIONS = {
     choose_theme: 'Choose theme',
     theme_dark: 'Dark',
     theme_light: 'Light',
+    barcode_scanner_tooltip: 'Barcode scanner (Local network)',
+    barcode_scanner_modal_title: 'Barcode Scanner Connection',
+    barcode_scanner_modal_desc:
+      'Scan this QR code with the Android app to use your phone as a barcode scanner.',
+    barcode_scanner_close: 'Close connection',
   },
 };
 

@@ -304,6 +304,12 @@ export default {
     handleBarcodeChange() {
       this.barcodeNotFound = false;
     },
+    handleBarcodeScanned(barcode) {
+      if (this.activeState && this.activeState.isEditable()) {
+        this.localProduct.barcode = barcode;
+        this.handleBarcodeBlur();
+      }
+    },
   },
 };
 </script>
