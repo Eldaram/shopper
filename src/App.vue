@@ -274,8 +274,7 @@ export default {
           addToBasket(matchedProduct);
           console.log(`Product added to basket: ${matchedProduct.name}`);
         } else {
-          // If no matched product, set it in the search query so they can search/create it
-          searchState.query = barcode;
+          console.log(`Scanned barcode ${barcode} does not exist in catalogue. Doing nothing.`);
         }
       });
     }
