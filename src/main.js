@@ -22,9 +22,6 @@ Object.defineProperty(app.config.globalProperties, '$currentLang', {
   configurable: true,
 });
 
-Promise.all([
-  i18n.loadLanguageInfo(),
-  theme.initTheme()
-]).then(() => {
+Promise.all([i18n.loadLanguageInfo(), theme.initTheme()]).then(() => {
   app.mount('#app');
 });

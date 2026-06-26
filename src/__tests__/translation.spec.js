@@ -122,7 +122,6 @@ describe('Translation Module', () => {
       TranslationController.setCurrentLanguage('en');
       expect(TranslationController.getTextForRenderer('basket')).toBe('Basket');
     });
-
   });
 
   describe('ThemeController', () => {
