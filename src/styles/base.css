@@ -1,0 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Color Palette Constants */
+  --color-ash-grey: #cad2c5;
+  --color-muted-teal: #84a98c;
+  --color-deep-teal: #52796f;
+  --color-dark-slate: #354f52;
+  --color-charcoal-blue: #2f3e46;
+
+  /* Layout Colors (Dark Theme Default) */
+  --bg-main: #1a2327; /* Dark slate body background */
+  --bg-sidebar: #222c30; /* Dark slate sidebar */
+  --bg-card: #2f3e46; /* Charcoal blue cards */
+  --bg-card-hover: #354f52; /* Dark slate hover cards */
+  --border-color: rgba(53, 79, 82, 0.6); /* Translucent dark slate */
+  --border-hover: #84a98c; /* Muted teal hover borders */
+
+  /* Typography Colors */
+  --text-primary: #cad2c5; /* Ash grey for main text */
+  --text-secondary: #84a98c; /* Muted teal for accents/prices */
+  --text-muted: #52796f; /* Deep teal for minor/placeholder labels */
+  --text-dark: #1a2327; /* For dark buttons or high contrast text */
+
+  /* Gradients & Shadows */
+  --accent-gradient: linear-gradient(135deg, #84a98c 0%, #52796f 100%);
+  --overlay-gradient: linear-gradient(
+    to top,
+    rgba(26, 35, 39, 0.95) 0%,
+    rgba(26, 35, 39, 0.5) 60%,
+    transparent 100%
+  );
+  --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  --accent-glow: rgba(132, 169, 140, 0.2);
+}
+
+[data-theme='light'] {
+  /* Layout Colors (Light Theme) */
+  --bg-main: #f4f6f5; /* Light grey-teal background */
+  --bg-sidebar: #ffffff; /* Clean white sidebar */
+  --bg-card: #ffffff; /* Clean white cards */
+  --bg-card-hover: #f0f4f2; /* Light teal tint for hover cards */
+  --border-color: rgba(82, 121, 111, 0.25); /* Soft grey-teal border */
+  --border-hover: #52796f; /* Deep teal hover borders */
+
+  /* Typography Colors */
+  --text-primary: #2f3e46; /* Charcoal blue for main text */
+  --text-secondary: #3b5a50; /* Deep teal for accents */
+  --text-muted: #627a70; /* Soft muted grey-teal for minor text */
+  --text-dark: #1a2327; /* Keep dark text for elements on light accent backgrounds */
+
+  /* Gradients & Shadows */
+  --accent-gradient: linear-gradient(135deg, #52796f 0%, #354f52 100%);
+  --overlay-gradient: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.5) 60%,
+    transparent 100%
+  );
+  --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --accent-glow: rgba(82, 121, 111, 0.15);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family:
+    'Plus Jakarta Sans',
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-dark-slate);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-deep-teal);
+}

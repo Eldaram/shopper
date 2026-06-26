@@ -109,6 +109,9 @@ const TRANSLATION_KEYS = [
   'no_sales_for_month',
   'sales_report_success',
   'sales_report_error',
+  'choose_theme',
+  'theme_dark',
+  'theme_light',
 ];
 
 // Fallback dictionary for testing and browser mock environments
@@ -225,6 +228,9 @@ const FALLBACK_TRANSLATIONS = {
     no_sales_for_month: 'Aucune vente pour ce mois.',
     sales_report_success: 'Rapport enregistré avec succès !',
     sales_report_error: "Erreur lors de l'enregistrement du rapport.",
+    choose_theme: 'Choisir le thème',
+    theme_dark: 'Sombre',
+    theme_light: 'Clair',
   },
   en: {
     categories: 'Categories',
@@ -337,6 +343,9 @@ const FALLBACK_TRANSLATIONS = {
     no_sales_for_month: 'No sales for this month.',
     sales_report_success: 'Report saved successfully!',
     sales_report_error: 'Error while saving the report.',
+    choose_theme: 'Choose theme',
+    theme_dark: 'Dark',
+    theme_light: 'Light',
   },
 };
 
