@@ -7,9 +7,11 @@
       :selected-category-id="selectedCategoryId"
       :active-ancestor-id="activeAncestorId"
       :is-viewing-dashboard="isViewingDashboard"
+      :is-viewing-sales-report="isViewingSalesReport"
       @select-category="handleSelectCategory"
       @contextmenu-category="handleCategoryContextMenu"
       @select-dashboard="handleSelectDashboard"
+      @select-sales-report="handleSelectSalesReport"
     />
 
     <!-- Main Workspace -->
@@ -22,16 +24,22 @@
           :focused-product="focusedProduct"
           :is-creating-product="isCreatingProduct"
           :is-viewing-dashboard="isViewingDashboard"
+          :is-viewing-sales-report="isViewingSalesReport"
           :readonly-ticket="readonlyTicket"
           @select-category="handleSelectCategory"
           @select-dashboard="handleSelectDashboard"
+          @select-sales-report="handleSelectSalesReport"
         />
 
         <div class="topbar-right">
           <!-- Search Bar (Visible only when not viewing product details, creation, dashboard or basket) -->
           <SearchBar
             v-if="
-              !focusedProduct && !isCreatingProduct && !basketState.isViewing && !isViewingDashboard
+              !focusedProduct &&
+              !isCreatingProduct &&
+              !basketState.isViewing &&
+              !isViewingDashboard &&
+              !isViewingSalesReport
             "
           />
 
@@ -67,6 +75,10 @@
           <DashboardView @view-ticket="handleViewTicket" />
         </div>
 
+        <div v-else-if="isViewingSalesReport">
+          <SalesReportView />
+        </div>
+
         <div v-else-if="focusedProduct || isCreatingProduct">
           <ProductDetail
             ref="productDetail"
@@ -99,7 +111,7 @@
 
     <!-- Floating Action Button (FAB) for fast item creation (hidden on basket/dashboard pages) -->
     <button
-      v-if="!basketState.isViewing && !isViewingDashboard"
+      v-if="!basketState.isViewing && !isViewingDashboard && !isViewingSalesReport"
       class="fab-btn"
       @click="handleFabClick"
       title="Créer un article"
@@ -125,6 +137,7 @@ import ProductDetail from './components/ProductDetail.vue';
 import BasketView from './components/BasketView.vue';
 import CatalogueView from './components/CatalogueView.vue';
 import DashboardView from './components/DashboardView.vue';
+import SalesReportView from './components/SalesReportView.vue';
 import SearchBar from './components/SearchBar.vue';
 import BasketHeaderButton from './components/BasketHeaderButton.vue';
 import ContextMenu from './components/ContextMenu.vue';
@@ -143,6 +156,7 @@ export default {
     BasketView,
     CatalogueView,
     DashboardView,
+    SalesReportView,
     SearchBar,
     BasketHeaderButton,
     ContextMenu,
@@ -161,6 +175,7 @@ export default {
       basketState,
       isOffline: !navigator.onLine,
       isViewingDashboard: false,
+      isViewingSalesReport: false,
       readonlyTicket: null,
     };
   },
@@ -266,6 +281,7 @@ export default {
       const proceed = await this.confirmExitCreateMode();
       if (!proceed) return;
       this.isViewingDashboard = false;
+      this.isViewingSalesReport = false;
       this.readonlyTicket = null;
       this.selectedCategoryId = catId;
       this.focusedProduct = null;
@@ -277,6 +293,7 @@ export default {
       const proceed = await this.confirmExitCreateMode();
       if (!proceed) return;
       this.isViewingDashboard = false;
+      this.isViewingSalesReport = false;
       this.readonlyTicket = null;
       this.focusedProduct = prod;
     },
@@ -285,6 +302,7 @@ export default {
         this.basketState.isViewing = false;
       }
       this.isViewingDashboard = false;
+      this.isViewingSalesReport = false;
       this.readonlyTicket = null;
       if (this.draftState.draftProduct) {
         this.preselectedCategoryId = this.draftState.draftProduct.category_id;
@@ -382,6 +400,7 @@ export default {
         this.focusedProduct = null;
         this.isCreatingProduct = false;
         this.isViewingDashboard = false;
+        this.isViewingSalesReport = false;
         this.readonlyTicket = null;
       }
     },
@@ -400,11 +419,23 @@ export default {
       this.readonlyTicket = null;
       this.selectedCategoryId = null;
       this.isViewingDashboard = true;
+      this.isViewingSalesReport = false;
+    },
+    async handleSelectSalesReport() {
+      const proceed = await this.confirmExitCreateMode();
+      if (!proceed) return;
+      this.basketState.isViewing = false;
+      this.focusedProduct = null;
+      this.readonlyTicket = null;
+      this.selectedCategoryId = null;
+      this.isViewingDashboard = false;
+      this.isViewingSalesReport = true;
     },
     handleViewTicket(ticket) {
       this.readonlyTicket = ticket;
       this.basketState.isViewing = true;
       this.isViewingDashboard = false;
+      this.isViewingSalesReport = false;
     },
     handleCategoryContextMenu(event, category) {
       if (this.$refs.contextMenu) {

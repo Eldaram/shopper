@@ -85,6 +85,21 @@ class TicketModel extends BaseModel {
     const result = this.run('DELETE FROM Ticket WHERE id = ?', [id]);
     return result.changes > 0;
   }
+
+  /**
+   * Finds all tickets in a given month.
+   * @param {string} month - YYYY-MM format
+   * @returns {any[]}
+   */
+  findMonthlySales(month) {
+    return this.all(
+      `SELECT id, created_at, total_amount_ht, total_amount_ttc
+       FROM Ticket
+       WHERE strftime('%Y-%m', created_at, 'localtime') = ?
+       ORDER BY created_at ASC`,
+      [month]
+    );
+  }
 }
 
 module.exports = new TicketModel();

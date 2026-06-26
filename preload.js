@@ -50,4 +50,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getTicketDetails: (id) => ipcRenderer.invoke('get-ticket-details', id),
   getDashboardStats: () => ipcRenderer.invoke('get-dashboard-stats'),
   checkout: (data) => ipcRenderer.invoke('checkout', data),
+  generateSalesReport: (month, format) =>
+    ipcRenderer.invoke('generate-sales-report', { month, format }),
 });
