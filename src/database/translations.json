@@ -533,6 +533,38 @@
     "creation_exit_detail": {
       "fr": "Si vous quittez sans sauvegarder, vos modifications seront perdues.",
       "en": "If you leave without saving, your changes will be lost."
+    },
+    "sales_report": {
+      "fr": "Rapports de ventes",
+      "en": "Sales Reports"
+    },
+    "generate_csv": {
+      "fr": "Générer CSV",
+      "en": "Generate CSV"
+    },
+    "generate_pdf": {
+      "fr": "Générer PDF",
+      "en": "Generate PDF"
+    },
+    "choose_month": {
+      "fr": "Choisir un mois",
+      "en": "Choose a month"
+    },
+    "tva_breakdown": {
+      "fr": "Détail de la TVA",
+      "en": "VAT Breakdown"
+    },
+    "no_sales_for_month": {
+      "fr": "Aucune vente pour ce mois.",
+      "en": "No sales for this month."
+    },
+    "sales_report_success": {
+      "fr": "Rapport enregistré avec succès !",
+      "en": "Report saved successfully!"
+    },
+    "sales_report_error": {
+      "fr": "Erreur lors de l'enregistrement du rapport.",
+      "en": "Error while saving the report."
     }
   }
 }

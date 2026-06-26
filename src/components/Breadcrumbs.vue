@@ -43,12 +43,16 @@ export default {
       type: Boolean,
       default: false,
     },
+    isViewingSalesReport: {
+      type: Boolean,
+      default: false,
+    },
     readonlyTicket: {
       type: Object,
       default: null,
     },
   },
-  emits: ['select-category', 'select-dashboard'],
+  emits: ['select-category', 'select-dashboard', 'select-sales-report'],
   data() {
     return {
       basketState,
@@ -64,6 +68,9 @@ export default {
       }
       if (this.isViewingDashboard) {
         return [{ name: this.$t('dashboard'), type: 'dashboard' }];
+      }
+      if (this.isViewingSalesReport) {
+        return [{ name: this.$t('sales_report'), type: 'sales_report' }];
       }
 
       const result = [{ name: this.$t('all_catalogue'), type: 'home' }];

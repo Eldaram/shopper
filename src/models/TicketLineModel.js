@@ -74,6 +74,26 @@ class TicketLineModel extends BaseModel {
     const result = this.run('DELETE FROM TicketLine WHERE id = ?', [id]);
     return result.changes > 0;
   }
+
+  /**
+   * Finds and aggregates TVA lines for the given month grouped by rate.
+   * @param {string} month - YYYY-MM format
+   * @returns {any[]}
+   */
+  findMonthlyTvaBreakdown(month) {
+    return this.all(
+      `SELECT tl.applied_tva_rate,
+              SUM(tl.final_unit_price_ht * tl.quantity) AS total_ht,
+              SUM(tl.final_unit_price_ttc * tl.quantity) AS total_ttc,
+              SUM((tl.final_unit_price_ttc - tl.final_unit_price_ht) * tl.quantity) AS total_tva
+       FROM TicketLine tl
+       JOIN Ticket t ON tl.ticket_id = t.id
+       WHERE strftime('%Y-%m', t.created_at, 'localtime') = ?
+       GROUP BY tl.applied_tva_rate
+       ORDER BY tl.applied_tva_rate ASC`,
+      [month]
+    );
+  }
 }
 
 module.exports = new TicketLineModel();

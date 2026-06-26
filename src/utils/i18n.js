@@ -101,6 +101,14 @@ const TRANSLATION_KEYS = [
   'creation_exit_title',
   'creation_exit_msg',
   'creation_exit_detail',
+  'sales_report',
+  'generate_csv',
+  'generate_pdf',
+  'choose_month',
+  'tva_breakdown',
+  'no_sales_for_month',
+  'sales_report_success',
+  'sales_report_error',
 ];
 
 // Fallback dictionary for testing and browser mock environments
@@ -209,6 +217,14 @@ const FALLBACK_TRANSLATIONS = {
     creation_exit_title: 'Changement de page',
     creation_exit_msg: 'Vous avez des modifications non enregistrées. Que voulez-vous faire ?',
     creation_exit_detail: 'Si vous quittez sans sauvegarder, vos modifications seront perdues.',
+    sales_report: 'Rapports de ventes',
+    generate_csv: 'Générer CSV',
+    generate_pdf: 'Générer PDF',
+    choose_month: 'Choisir un mois',
+    tva_breakdown: 'Détail de la TVA',
+    no_sales_for_month: 'Aucune vente pour ce mois.',
+    sales_report_success: 'Rapport enregistré avec succès !',
+    sales_report_error: "Erreur lors de l'enregistrement du rapport.",
   },
   en: {
     categories: 'Categories',
@@ -313,6 +329,14 @@ const FALLBACK_TRANSLATIONS = {
     creation_exit_title: 'Page change',
     creation_exit_msg: 'You have unsaved changes. What do you want to do?',
     creation_exit_detail: 'If you leave without saving, your changes will be lost.',
+    sales_report: 'Sales Reports',
+    generate_csv: 'Generate CSV',
+    generate_pdf: 'Generate PDF',
+    choose_month: 'Choose a month',
+    tva_breakdown: 'VAT Breakdown',
+    no_sales_for_month: 'No sales for this month.',
+    sales_report_success: 'Report saved successfully!',
+    sales_report_error: 'Error while saving the report.',
   },
 };
 

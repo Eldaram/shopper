@@ -19,6 +19,7 @@ const imageHandlers = require('./src/ipc/imageHandlers');
 const dialogHandlers = require('./src/ipc/dialogHandlers');
 const translationHandlers = require('./src/ipc/translationHandlers');
 const ticketHandlers = require('./src/ipc/ticketHandlers');
+const salesReportHandlers = require('./src/ipc/salesReportHandlers');
 const MenuService = require('./src/services/MenuService');
 
 // Global error nets for main process
@@ -119,6 +120,7 @@ function initializeApp() {
       dialogHandlers,
       translationHandlers,
       ticketHandlers,
+      salesReportHandlers,
     ]);
 
     ipcMain.on('set-delete-item-state', (event, enabled, label) => {
