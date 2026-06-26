@@ -16,6 +16,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getSubcategories: (parentId) => ipcRenderer.invoke('get-subcategories', parentId),
   getProducts: () => ipcRenderer.invoke('get-products'),
   getTvaRates: () => ipcRenderer.invoke('get-tva-rates'),
+  saveTvaRates: (rates) => ipcRenderer.invoke('save-tva-rates', rates),
   createProduct: (data) => ipcRenderer.invoke('create-product', data),
   updateProduct: (id, data) => ipcRenderer.invoke('update-product', id, data),
   deleteProduct: (id) => ipcRenderer.invoke('delete-product', id),

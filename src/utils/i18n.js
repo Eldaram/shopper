@@ -120,6 +120,15 @@ const TRANSLATION_KEYS = [
   'barcode_scanner_modal_title',
   'barcode_scanner_modal_desc',
   'barcode_scanner_close',
+  'tva_management',
+  'add_rate',
+  'rate_name',
+  'rate_value',
+  'tva_save_success',
+  'tva_save_error',
+  'unsaved_changes_tva_title',
+  'unsaved_changes_tva_msg',
+  'unsaved_changes_tva_detail',
 ];
 
 // Fallback dictionary for testing and browser mock environments
@@ -249,6 +258,16 @@ const FALLBACK_TRANSLATIONS = {
     barcode_scanner_modal_desc:
       "Scannez ce code QR avec l'application Android pour utiliser votre téléphone comme scanner de codes-barres.",
     barcode_scanner_close: 'Fermer la connexion',
+    tva_management: 'Gestion de la TVA',
+    add_rate: 'Ajouter un taux',
+    rate_name: 'Nom du taux',
+    rate_value: 'Taux (%)',
+    tva_save_success: 'Taux de TVA enregistrés avec succès.',
+    tva_save_error: "Erreur lors de l'enregistrement des taux.",
+    unsaved_changes_tva_title: 'Modifications de TVA non enregistrées',
+    unsaved_changes_tva_msg: 'Voulez-vous abandonner les modifications des taux de TVA ?',
+    unsaved_changes_tva_detail:
+      'Si vous quittez, toutes les modifications non enregistrées seront perdues.',
   },
   en: {
     categories: 'Categories',
@@ -373,6 +392,15 @@ const FALLBACK_TRANSLATIONS = {
     barcode_scanner_modal_desc:
       'Scan this QR code with the Android app to use your phone as a barcode scanner.',
     barcode_scanner_close: 'Close connection',
+    tva_management: 'VAT Management',
+    add_rate: 'Add Rate',
+    rate_name: 'Rate Name',
+    rate_value: 'Rate (%)',
+    tva_save_success: 'VAT rates saved successfully.',
+    tva_save_error: 'Error saving VAT rates.',
+    unsaved_changes_tva_title: 'Unsaved VAT Changes',
+    unsaved_changes_tva_msg: 'Do you want to discard changes to the VAT rates?',
+    unsaved_changes_tva_detail: 'If you leave, all unsaved changes will be lost.',
   },
 };
 

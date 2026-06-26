@@ -649,6 +649,42 @@
     "delete_category": {
       "fr": "Supprimer la catégorie",
       "en": "Delete category"
+    },
+    "tva_management": {
+      "fr": "Gestion de la TVA",
+      "en": "VAT Management"
+    },
+    "add_rate": {
+      "fr": "Ajouter un taux",
+      "en": "Add Rate"
+    },
+    "rate_name": {
+      "fr": "Nom du taux",
+      "en": "Rate Name"
+    },
+    "rate_value": {
+      "fr": "Taux (%)",
+      "en": "Rate (%)"
+    },
+    "tva_save_success": {
+      "fr": "Taux de TVA enregistrés avec succès.",
+      "en": "VAT rates saved successfully."
+    },
+    "tva_save_error": {
+      "fr": "Erreur lors de l'enregistrement des taux.",
+      "en": "Error saving VAT rates."
+    },
+    "unsaved_changes_tva_title": {
+      "fr": "Modifications de TVA non enregistrées",
+      "en": "Unsaved VAT Changes"
+    },
+    "unsaved_changes_tva_msg": {
+      "fr": "Voulez-vous abandonner les modifications des taux de TVA ?",
+      "en": "Do you want to discard changes to the VAT rates?"
+    },
+    "unsaved_changes_tva_detail": {
+      "fr": "Si vous quittez, toutes les modifications non enregistrées seront perdues.",
+      "en": "If you leave, all unsaved changes will be lost."
     }
   }
 }

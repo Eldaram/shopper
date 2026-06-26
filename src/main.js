@@ -10,6 +10,7 @@ import './styles/category-detail.css';
 import './styles/basket.css';
 import './styles/dashboard.css';
 import './styles/sales-report.css';
+import './styles/tva-management.css';
 import { i18n } from './utils/i18n';
 import { theme } from './utils/theme';
 
