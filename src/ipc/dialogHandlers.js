@@ -1,7 +1,7 @@
 const { dialog } = require('electron');
 
 module.exports = {
-  'show-exit-dialog': async () => {
+  'show-exit-dialog': async (event, isCreating) => {
     const mainModule = require('../../main');
     const mainWindow = mainModule.getMainWindow ? mainModule.getMainWindow() : null;
 
@@ -9,16 +9,29 @@ module.exports = {
     const t = (key) =>
       TranslationController.getText(TranslationController.getCurrentLanguage(), key);
 
-    const result = await dialog.showMessageBox(mainWindow, {
-      type: 'warning',
-      buttons: [t('abandon'), t('stay')],
-      defaultId: 1,
-      cancelId: 1,
-      title: t('unsaved_changes_title'),
-      message: t('unsaved_changes_msg'),
-      detail: t('unsaved_changes_detail'),
-    });
-    return result.response;
+    if (isCreating) {
+      const result = await dialog.showMessageBox(mainWindow, {
+        type: 'question',
+        buttons: [t('keep_draft'), t('cancel'), t('abandon')],
+        defaultId: 0,
+        cancelId: 1,
+        title: t('creation_exit_title'),
+        message: t('creation_exit_msg'),
+        detail: t('creation_exit_detail'),
+      });
+      return result.response;
+    } else {
+      const result = await dialog.showMessageBox(mainWindow, {
+        type: 'warning',
+        buttons: [t('abandon'), t('stay')],
+        defaultId: 1,
+        cancelId: 1,
+        title: t('unsaved_changes_title'),
+        message: t('unsaved_changes_msg'),
+        detail: t('unsaved_changes_detail'),
+      });
+      return result.response;
+    }
   },
 
   'show-delete-confirm-dialog': async (event, productName) => {

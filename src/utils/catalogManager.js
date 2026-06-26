@@ -1,3 +1,5 @@
+import { clearDraft } from './draftStore';
+
 export default {
   async fetchData() {
     try {
@@ -26,6 +28,7 @@ export default {
     return ids;
   },
   async handleProductCreated(newProduct) {
+    clearDraft();
     this.isCreatingProduct = false;
     this.focusedProduct = null;
     await this.fetchData();

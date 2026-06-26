@@ -96,6 +96,11 @@ const TRANSLATION_KEYS = [
   'previous',
   'next',
   'page',
+  'keep_draft',
+  'resume_draft',
+  'creation_exit_title',
+  'creation_exit_msg',
+  'creation_exit_detail',
 ];
 
 // Fallback dictionary for testing and browser mock environments
@@ -199,6 +204,11 @@ const FALLBACK_TRANSLATIONS = {
     previous: 'Précédent',
     next: 'Suivant',
     page: 'Page',
+    keep_draft: 'Garder le brouillon',
+    resume_draft: 'Reprise du brouillon',
+    creation_exit_title: 'Changement de page',
+    creation_exit_msg: 'Vous avez des modifications non enregistrées. Que voulez-vous faire ?',
+    creation_exit_detail: 'Si vous quittez sans sauvegarder, vos modifications seront perdues.',
   },
   en: {
     categories: 'Categories',
@@ -298,6 +308,11 @@ const FALLBACK_TRANSLATIONS = {
     previous: 'Previous',
     next: 'Next',
     page: 'Page',
+    keep_draft: 'Keep draft',
+    resume_draft: 'Resume draft',
+    creation_exit_title: 'Page change',
+    creation_exit_msg: 'You have unsaved changes. What do you want to do?',
+    creation_exit_detail: 'If you leave without saving, your changes will be lost.',
   },
 };
 

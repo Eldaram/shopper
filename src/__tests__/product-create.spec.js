@@ -4,6 +4,7 @@ import { mount, config } from '@vue/test-utils';
 import { i18n } from '../utils/i18n';
 import ProductDetail from '../components/ProductDetail.vue';
 import App from '../App.vue';
+import { clearDraft } from '../utils/draftStore';
 
 config.global.mocks = config.global.mocks || {};
 config.global.mocks.$t = (key) => i18n.t(key);
@@ -45,6 +46,7 @@ describe('Product Manual Creation & Edition Tests', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    clearDraft();
   });
 
   describe('ProductDetail.vue Component', () => {
@@ -61,6 +63,32 @@ describe('Product Manual Creation & Edition Tests', () => {
       expect(wrapper.vm.localProduct.name).toBe('');
       expect(wrapper.vm.localProduct.category_id).toBe(2);
       expect(wrapper.vm.localProduct.tva_id).toBe(1); // Defaults to first rate ID
+    });
+
+    it('should load draft values if provided in create mode', () => {
+      const draftMock = {
+        name: 'Draft Soda',
+        category_id: 2,
+        tva_id: 1,
+        price_ht: '1.50',
+        price_ttc: '1.80',
+        image_path: 'media://img_draft.png',
+        image_preview: 'blob:mock-draft-preview',
+      };
+
+      const wrapper = mount(ProductDetail, {
+        props: {
+          mode: 'create',
+          categories: categoriesMock,
+          tvaRates: tvaRatesMock,
+          draft: draftMock,
+        },
+      });
+
+      expect(wrapper.vm.localProduct.name).toBe('Draft Soda');
+      expect(wrapper.vm.localProduct.category_id).toBe(2);
+      expect(wrapper.vm.localProduct.price_ht).toBe('1.50');
+      expect(wrapper.vm.localProduct.image_path).toBe('media://img_draft.png');
     });
 
     it('should calculate TTC from HT automatically', async () => {
@@ -310,13 +338,64 @@ describe('Product Manual Creation & Edition Tests', () => {
       wrapper.vm.$refs.productDetail.localProduct.name = 'New Item';
       wrapper.vm.$refs.productDetail.localProduct.category_id = 2;
 
-      mockElectronAPI.showExitConfirmationDialog.mockResolvedValue(0); // Abandonner
+      mockElectronAPI.showExitConfirmationDialog.mockResolvedValue(2); // Abandonner
 
       await wrapper.vm.handleSelectCategory(1);
 
-      expect(mockElectronAPI.showExitConfirmationDialog).toHaveBeenCalled();
+      expect(mockElectronAPI.showExitConfirmationDialog).toHaveBeenCalledWith(true);
       expect(wrapper.vm.isCreatingProduct).toBe(false);
       expect(wrapper.vm.selectedCategoryId).toBe(1);
+      expect(wrapper.vm.draftState.draftProduct).toBeNull();
+    });
+
+    it('should prompt when trying to select category and creation form is dirty, saving draft if Garder le brouillon', async () => {
+      mockElectronAPI.getCategories.mockResolvedValue(categoriesMock);
+      mockElectronAPI.getProducts.mockResolvedValue([]);
+      mockElectronAPI.getTvaRates.mockResolvedValue(tvaRatesMock);
+
+      const wrapper = mount(App);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      wrapper.vm.isCreatingProduct = true;
+      await wrapper.vm.$nextTick();
+
+      wrapper.vm.$refs.productDetail.localProduct.name = 'Draft Item';
+      wrapper.vm.$refs.productDetail.localProduct.category_id = 2;
+
+      mockElectronAPI.showExitConfirmationDialog.mockResolvedValue(0); // Garder le brouillon
+
+      await wrapper.vm.handleSelectCategory(1);
+
+      expect(mockElectronAPI.showExitConfirmationDialog).toHaveBeenCalledWith(true);
+      expect(wrapper.vm.draftState.draftProduct.name).toBe('Draft Item');
+      expect(wrapper.vm.draftState.draftProduct.category_id).toBe(2);
+      expect(wrapper.vm.isCreatingProduct).toBe(false);
+      expect(wrapper.vm.selectedCategoryId).toBe(1);
+    });
+
+    it('should show Reprise du brouillon in the context menu if draftProduct is not null', async () => {
+      mockElectronAPI.getCategories.mockResolvedValue(categoriesMock);
+      mockElectronAPI.getProducts.mockResolvedValue([]);
+      mockElectronAPI.getTvaRates.mockResolvedValue(tvaRatesMock);
+
+      const wrapper = mount(App);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // With draftProduct null
+      wrapper.vm.draftState.draftProduct = null;
+      wrapper.vm.handleCategoryContextMenu(
+        { clientX: 100, clientY: 100, preventDefault: () => {} },
+        { id: 2, name: 'Boissons' }
+      );
+      await wrapper.vm.$nextTick();
+      expect(wrapper.text()).toContain('Ajouter un article dans Boissons');
+      expect(wrapper.text()).not.toContain('Reprise du brouillon');
+
+      // With draftProduct populated
+      wrapper.vm.draftState.draftProduct = { name: 'Draft product', category_id: 2 };
+      await wrapper.vm.$nextTick();
+      expect(wrapper.text()).toContain('Reprise du brouillon');
+      expect(wrapper.text()).not.toContain('Ajouter un article dans Boissons');
     });
 
     it('should not change screen if user decides to stay (cancel dialog)', async () => {
@@ -333,7 +412,8 @@ describe('Product Manual Creation & Edition Tests', () => {
 
       wrapper.vm.$refs.productDetail.localProduct.name = 'New Item';
 
-      mockElectronAPI.showExitConfirmationDialog.mockResolvedValue(1); // Rester
+      // Dialog returns 1 (Cancel / Rester)
+      mockElectronAPI.showExitConfirmationDialog.mockResolvedValue(1);
 
       await wrapper.vm.handleSelectCategory(1);
 

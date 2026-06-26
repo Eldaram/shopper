@@ -73,6 +73,7 @@
             :product="focusedProduct"
             :mode="isCreatingProduct ? 'create' : 'view'"
             :preselected-category-id="preselectedCategoryId"
+            :draft="draftState.draftProduct"
             :categories="categories"
             :tva-rates="tvaRates"
             :is-offline="isOffline"
@@ -109,6 +110,7 @@
     <!-- Custom Context Menu -->
     <ContextMenu
       ref="contextMenu"
+      :has-draft="draftState.draftProduct !== null"
       @delete-product="handleDeleteProductFromContextMenu"
       @delete-category="handleDeleteCategoryFromContextMenu"
       @create-item="handleCreateItemFromContextMenu"
@@ -129,6 +131,7 @@ import ContextMenu from './components/ContextMenu.vue';
 import LanguageSelector from './components/LanguageSelector.vue';
 import { loadBrowserMocks as getBrowserMocks } from './utils/mockData';
 import { basketState, confirmAndClearBasket } from './utils/basketStore';
+import { draftState, saveDraft, clearDraft } from './utils/draftStore';
 import catalogMethods from './utils/catalogManager';
 
 export default {
@@ -153,6 +156,7 @@ export default {
       selectedCategoryId: null,
       focusedProduct: null,
       isCreatingProduct: false,
+      draftState,
       preselectedCategoryId: null,
       basketState,
       isOffline: !navigator.onLine,
@@ -282,7 +286,11 @@ export default {
       }
       this.isViewingDashboard = false;
       this.readonlyTicket = null;
-      this.preselectedCategoryId = categoryId;
+      if (this.draftState.draftProduct) {
+        this.preselectedCategoryId = this.draftState.draftProduct.category_id;
+      } else {
+        this.preselectedCategoryId = categoryId;
+      }
       this.isCreatingProduct = true;
       this.focusedProduct = null;
     },
@@ -299,27 +307,56 @@ export default {
       }
 
       const isDirty = detail.isFormDirty();
-      if (!isDirty) {
+      const isDraftLoaded = this.draftState.draftProduct !== null;
+      if (!isDirty && !isDraftLoaded) {
         this.isCreatingProduct = false;
         return true;
       }
 
-      let choice = 1; // Default to stay (1 is stay)
-      if (
-        window.electronAPI &&
-        typeof window.electronAPI.showExitConfirmationDialog === 'function'
-      ) {
-        choice = await window.electronAPI.showExitConfirmationDialog();
-      } else {
-        const res = window.confirm(this.$t('unsaved_changes_msg'));
-        choice = res ? 0 : 1; // 0 = Abandonner, 1 = Rester
-      }
+      if (this.isCreatingProduct) {
+        let choice = 2; // Default to Discard (2 is Discard/Abandon)
+        if (
+          window.electronAPI &&
+          typeof window.electronAPI.showExitConfirmationDialog === 'function'
+        ) {
+          choice = await window.electronAPI.showExitConfirmationDialog(true);
+        } else {
+          const res = window.confirm(
+            "Voulez-vous garder l'article en brouillon ?\n\nOK = Garder le brouillon\nAnnuler = Abandonner"
+          );
+          choice = res ? 0 : 2;
+        }
 
-      if (choice === 0) {
-        this.isCreatingProduct = false;
-        return true;
+        if (choice === 0) {
+          if (this.$refs.productDetail) {
+            saveDraft(this.$refs.productDetail.getFormData());
+          }
+          this.isCreatingProduct = false;
+          return true;
+        } else if (choice === 1) {
+          return false; // Stay on page
+        } else {
+          clearDraft();
+          this.isCreatingProduct = false;
+          return true;
+        }
       } else {
-        return false; // Stay on page
+        let choice = 1; // Default to stay (1 is stay)
+        if (
+          window.electronAPI &&
+          typeof window.electronAPI.showExitConfirmationDialog === 'function'
+        ) {
+          choice = await window.electronAPI.showExitConfirmationDialog(false);
+        } else {
+          const res = window.confirm(this.$t('unsaved_changes_msg'));
+          choice = res ? 0 : 1; // 0 = Abandonner, 1 = Rester
+        }
+
+        if (choice === 0) {
+          return true;
+        } else {
+          return false; // Stay on page
+        }
       }
     },
     async handleCloseDetail() {

@@ -86,6 +86,7 @@ export default {
     categories: { type: Array, required: true },
     tvaRates: { type: Array, required: true },
     isOffline: { type: Boolean, default: false },
+    draft: { type: Object, default: null },
   },
   emits: ['close', 'product-created', 'product-updated', 'delete'],
   data() {
@@ -263,7 +264,9 @@ export default {
         window.electronAPI &&
         typeof window.electronAPI.showExitConfirmationDialog === 'function'
       ) {
-        choice = await window.electronAPI.showExitConfirmationDialog();
+        choice = await window.electronAPI.showExitConfirmationDialog(
+          this.currentStateName === 'create'
+        );
       } else {
         const res = window.confirm(this.$t('unsaved_changes_msg'));
         choice = res ? 0 : 1;

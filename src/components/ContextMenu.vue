@@ -10,8 +10,10 @@
       <div class="context-menu-item" @click="handleCreate">
         <span class="context-menu-icon">➕</span>
         <span>
-          {{ $t('add_item') }}
-          {{ targetCategory ? ` ${$t('in')} ${targetCategory.name}` : '' }}
+          <template v-if="hasDraft">{{ $t('resume_draft') }}</template>
+          <template v-else>{{
+            $t('add_item') + (targetCategory ? ` ${$t('in')} ${targetCategory.name}` : '')
+          }}</template>
         </span>
       </div>
       <div
@@ -29,6 +31,9 @@
 <script>
 export default {
   name: 'ContextMenu',
+  props: {
+    hasDraft: { type: Boolean, default: false },
+  },
   emits: ['delete-product', 'delete-category', 'create-item'],
   data() {
     return {

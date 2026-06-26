@@ -107,18 +107,33 @@ export function initForm(vm) {
   vm.barcodeNotFound = false;
   vm.showSuggestions = false;
   if (vm.currentStateName === 'create') {
-    vm.localProduct = {
-      name: '',
-      barcode: '',
-      category_id: vm.preselectedCategoryId || null,
-      tva_id: vm.localProduct.tva_id || vm.tvaRates[0]?.id || null,
-      price_ht: '0.00',
-      price_ttc: '0.00',
-      image_path: null,
-      image_preview: null,
-      is_openfoodfacts: 0,
-      image_url_openfoodfacts: null,
-    };
+    if (vm.draft) {
+      vm.localProduct = {
+        name: vm.draft.name || '',
+        barcode: vm.draft.barcode || '',
+        category_id: vm.draft.category_id || null,
+        tva_id: vm.draft.tva_id || vm.tvaRates[0]?.id || null,
+        price_ht: vm.draft.price_ht || '0.00',
+        price_ttc: vm.draft.price_ttc || '0.00',
+        image_path: vm.draft.image_path || null,
+        image_preview: vm.draft.image_preview || null,
+        is_openfoodfacts: vm.draft.is_openfoodfacts || 0,
+        image_url_openfoodfacts: vm.draft.image_url_openfoodfacts || null,
+      };
+    } else {
+      vm.localProduct = {
+        name: '',
+        barcode: '',
+        category_id: vm.preselectedCategoryId || null,
+        tva_id: vm.localProduct.tva_id || vm.tvaRates[0]?.id || null,
+        price_ht: '0.00',
+        price_ttc: '0.00',
+        image_path: null,
+        image_preview: null,
+        is_openfoodfacts: 0,
+        image_url_openfoodfacts: null,
+      };
+    }
   } else if (vm.product) {
     vm.localProduct = {
       name: vm.product.name || '',
@@ -150,6 +165,17 @@ export function getFormData(localProduct) {
 
 export function getInitialProductState(vm) {
   if (vm.currentStateName === 'create') {
+    if (vm.draft) {
+      return {
+        name: vm.draft.name || '',
+        barcode: vm.draft.barcode || '',
+        category_id: vm.draft.category_id || null,
+        tva_id: vm.draft.tva_id || vm.tvaRates[0]?.id || null,
+        price_ht: parsePrice(vm.draft.price_ht),
+        price_ttc: parsePrice(vm.draft.price_ttc),
+        image_path: vm.draft.image_path || null,
+      };
+    }
     return {
       name: '',
       barcode: '',

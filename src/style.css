@@ -218,6 +218,8 @@ body {
   justify-content: space-between;
   background-color: rgba(26, 35, 39, 0.4);
   backdrop-filter: blur(8px);
+  position: relative;
+  z-index: 100;
 }
 
 /* Breadcrumbs Styling */
