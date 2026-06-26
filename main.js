@@ -2,6 +2,16 @@ const { app, BrowserWindow, ipcMain, protocol, net } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
+
+// ── Dev / Prod data separation ─────────────────────────────────────────────
+// When running outside of a packaged build, redirect userData to a dedicated
+// development folder so dev data never pollutes production data.
+if (!app.isPackaged) {
+  const devDataPath = path.join(app.getPath('appData'), 'Shopper-Dev');
+  app.setPath('userData', devDataPath);
+}
+// ──────────────────────────────────────────────────────────────────────────
+
 const log = require('./src/utils/logger');
 
 // Register media protocol as privileged (must be before app ready)

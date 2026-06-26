@@ -14,6 +14,7 @@ module.exports = {
         quit: vi.fn(),
         requestSingleInstanceLock: vi.fn().mockReturnValue(true),
         getPath: vi.fn().mockReturnValue('mock-path'),
+        setPath: vi.fn(),
       };
     }
     return appInstance;
