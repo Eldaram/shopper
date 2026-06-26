@@ -62,4 +62,3 @@ class DatabaseController {
 }
 
 module.exports = new DatabaseController();
-
