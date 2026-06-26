@@ -34,6 +34,7 @@ const mockElectron = {
     quit: vi.fn(),
     requestSingleInstanceLock: vi.fn().mockReturnValue(true),
     getPath: vi.fn().mockReturnValue('mock-path'),
+    setPath: vi.fn(),
   },
   BrowserWindow: class MockBrowserWindow {
     constructor(options) {
