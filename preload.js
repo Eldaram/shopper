@@ -22,7 +22,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   deleteCategory: (id) => ipcRenderer.invoke('delete-category', id),
   selectImage: () => ipcRenderer.invoke('select-image'),
   saveImage: (filePath) => ipcRenderer.invoke('save-image', filePath),
-  showExitConfirmationDialog: () => ipcRenderer.invoke('show-exit-dialog'),
+  showExitConfirmationDialog: (isCreating) => ipcRenderer.invoke('show-exit-dialog', isCreating),
   confirmDeleteProduct: (productName) =>
     ipcRenderer.invoke('show-delete-confirm-dialog', productName),
   confirmDeleteCategory: (categoryName) =>

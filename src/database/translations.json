@@ -513,6 +513,26 @@
     "page": {
       "fr": "Page",
       "en": "Page"
+    },
+    "keep_draft": {
+      "fr": "Garder le brouillon",
+      "en": "Keep draft"
+    },
+    "resume_draft": {
+      "fr": "Reprise du brouillon",
+      "en": "Resume draft"
+    },
+    "creation_exit_title": {
+      "fr": "Changement de page",
+      "en": "Page change"
+    },
+    "creation_exit_msg": {
+      "fr": "Vous avez des modifications non enregistrées. Que voulez-vous faire ?",
+      "en": "You have unsaved changes. What do you want to do?"
+    },
+    "creation_exit_detail": {
+      "fr": "Si vous quittez sans sauvegarder, vos modifications seront perdues.",
+      "en": "If you leave without saving, your changes will be lost."
     }
   }
 }

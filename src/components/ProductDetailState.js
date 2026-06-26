@@ -106,11 +106,7 @@ export class CreateState extends ProductDetailState {
     return this.vm.$t('create_product');
   }
 
-  async handleCancel() {
-    if (this.vm.isFormDirty()) {
-      const proceed = await this.vm.confirmDiscardChanges();
-      if (!proceed) return;
-    }
+  handleCancel() {
     this.vm.$emit('close');
   }
 
