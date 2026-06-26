@@ -2,8 +2,6 @@
   <div class="lang-selector-container" v-click-outside="closeDropdown">
     <button class="lang-btn" @click="toggleDropdown" :title="t('choose_language') || 'Language'">
       <span class="lang-flag">{{ currentLanguageDetails?.flag }}</span>
-      <span class="lang-name">{{ currentLanguageDetails?.name }}</span>
-      <span class="lang-arrow" :class="{ open: isOpen }">▼</span>
     </button>
 
     <transition name="fade">

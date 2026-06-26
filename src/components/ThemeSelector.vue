@@ -2,8 +2,6 @@
   <div class="theme-selector-container" v-click-outside="closeDropdown">
     <button class="theme-btn" @click="toggleDropdown" :title="t('choose_theme') || 'Theme'">
       <span class="theme-icon">{{ currentThemeDetails?.icon }}</span>
-      <span class="theme-name">{{ currentThemeDetails?.name }}</span>
-      <span class="theme-arrow" :class="{ open: isOpen }">▼</span>
     </button>
 
     <transition name="fade">
