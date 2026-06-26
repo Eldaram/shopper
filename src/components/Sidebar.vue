@@ -12,38 +12,36 @@
       <div class="nav-title">{{ $t('categories') }}</div>
       <nav>
         <ul class="nav-list">
-          <li
-            class="nav-item"
-            :class="{
-              active:
-                !basketState.isViewing &&
-                selectedCategoryId === null &&
-                !isViewingDashboard &&
-                !isViewingSalesReport,
-            }"
+          <SidebarItem
+            :active="
+              !basketState.isViewing &&
+              selectedCategoryId === null &&
+              !isViewingDashboard &&
+              !isViewingSalesReport &&
+              !isViewingTvaManagement
+            "
             @click="$emit('select-category', null)"
-            @contextmenu.prevent="$emit('contextmenu-category', $event, null)"
+            @contextmenu="$emit('contextmenu-category', $event, null)"
+            :count="products.length"
           >
-            <span>{{ $t('all_catalogue') }}</span>
-            <span class="nav-item-count">{{ products.length }}</span>
-          </li>
-          <li
+            {{ $t('all_catalogue') }}
+          </SidebarItem>
+          <SidebarItem
             v-for="category in mainCategories"
             :key="category.id"
-            class="nav-item"
-            :class="{
-              active:
-                !basketState.isViewing &&
-                !isViewingDashboard &&
-                !isViewingSalesReport &&
-                (category.id === selectedCategoryId || category.id === activeAncestorId),
-            }"
+            :active="
+              !basketState.isViewing &&
+              !isViewingDashboard &&
+              !isViewingSalesReport &&
+              !isViewingTvaManagement &&
+              (category.id === selectedCategoryId || category.id === activeAncestorId)
+            "
             @click="$emit('select-category', category.id)"
-            @contextmenu.prevent="$emit('contextmenu-category', $event, category)"
+            @contextmenu="$emit('contextmenu-category', $event, category)"
+            :count="countProducts(category.id)"
           >
-            <span>{{ category.name }}</span>
-            <span class="nav-item-count">{{ countProducts(category.id) }}</span>
-          </li>
+            {{ category.name }}
+          </SidebarItem>
         </ul>
       </nav>
 
@@ -51,20 +49,24 @@
       <div class="nav-title" style="margin-top: 24px">{{ $t('management') }}</div>
       <nav>
         <ul class="nav-list">
-          <li
-            class="nav-item"
-            :class="{ active: !basketState.isViewing && isViewingDashboard }"
+          <SidebarItem
+            :active="!basketState.isViewing && isViewingDashboard"
             @click="$emit('select-dashboard')"
           >
-            <span>📊 {{ $t('dashboard') }}</span>
-          </li>
-          <li
-            class="nav-item"
-            :class="{ active: !basketState.isViewing && isViewingSalesReport }"
+            📊 {{ $t('dashboard') }}
+          </SidebarItem>
+          <SidebarItem
+            :active="!basketState.isViewing && isViewingSalesReport"
             @click="$emit('select-sales-report')"
           >
-            <span>📄 {{ $t('sales_report') }}</span>
-          </li>
+            📄 {{ $t('sales_report') }}
+          </SidebarItem>
+          <SidebarItem
+            :active="!basketState.isViewing && isViewingTvaManagement"
+            @click="$emit('select-tva-management')"
+          >
+            ⚙️ {{ $t('tva_management') }}
+          </SidebarItem>
         </ul>
       </nav>
     </div>
@@ -72,10 +74,14 @@
 </template>
 
 <script>
+import SidebarItem from './SidebarItem.vue';
 import { basketState } from '../utils/basketStore';
 
 export default {
   name: 'Sidebar',
+  components: {
+    SidebarItem,
+  },
   props: {
     categories: {
       type: Array,
@@ -101,8 +107,18 @@ export default {
       type: Boolean,
       default: false,
     },
+    isViewingTvaManagement: {
+      type: Boolean,
+      default: false,
+    },
   },
-  emits: ['select-category', 'contextmenu-category', 'select-dashboard', 'select-sales-report'],
+  emits: [
+    'select-category',
+    'contextmenu-category',
+    'select-dashboard',
+    'select-sales-report',
+    'select-tva-management',
+  ],
   data() {
     return {
       basketState,

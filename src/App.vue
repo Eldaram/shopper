@@ -8,10 +8,12 @@
       :active-ancestor-id="activeAncestorId"
       :is-viewing-dashboard="isViewingDashboard"
       :is-viewing-sales-report="isViewingSalesReport"
+      :is-viewing-tva-management="isViewingTvaManagement"
       @select-category="handleSelectCategory"
       @contextmenu-category="handleCategoryContextMenu"
       @select-dashboard="handleSelectDashboard"
       @select-sales-report="handleSelectSalesReport"
+      @select-tva-management="handleSelectTvaManagement"
     />
 
     <!-- Main Workspace -->
@@ -27,10 +29,12 @@
           :is-creating-category="categoryDetailMode === 'create'"
           :is-viewing-dashboard="isViewingDashboard"
           :is-viewing-sales-report="isViewingSalesReport"
+          :is-viewing-tva-management="isViewingTvaManagement"
           :readonly-ticket="readonlyTicket"
           @select-category="handleSelectCategory"
           @select-dashboard="handleSelectDashboard"
           @select-sales-report="handleSelectSalesReport"
+          @select-tva-management="handleSelectTvaManagement"
         />
 
         <div class="topbar-right">
@@ -42,7 +46,8 @@
               categoryDetailMode === null &&
               !basketState.isViewing &&
               !isViewingDashboard &&
-              !isViewingSalesReport
+              !isViewingSalesReport &&
+              !isViewingTvaManagement
             "
           />
 
@@ -86,6 +91,14 @@
 
         <div v-else-if="isViewingSalesReport">
           <SalesReportView />
+        </div>
+
+        <div v-else-if="isViewingTvaManagement">
+          <TvaManagementView
+            ref="tvaView"
+            @close="handleCloseTvaManagement"
+            @tva-saved="handleTvaSaved"
+          />
         </div>
 
         <div v-else-if="focusedProduct || isCreatingProduct">
@@ -138,6 +151,7 @@
         !basketState.isViewing &&
         !isViewingDashboard &&
         !isViewingSalesReport &&
+        !isViewingTvaManagement &&
         categoryDetailMode === null &&
         !focusedProduct &&
         !isCreatingProduct
@@ -171,6 +185,7 @@ import BasketView from './components/BasketView.vue';
 import CatalogueView from './components/CatalogueView.vue';
 import DashboardView from './components/DashboardView.vue';
 import SalesReportView from './components/SalesReportView.vue';
+import TvaManagementView from './components/TvaManagementView.vue';
 import SearchBar from './components/SearchBar.vue';
 import BasketHeaderButton from './components/BasketHeaderButton.vue';
 import ContextMenu from './components/ContextMenu.vue';
@@ -194,6 +209,7 @@ export default {
     CatalogueView,
     DashboardView,
     SalesReportView,
+    TvaManagementView,
     SearchBar,
     BasketHeaderButton,
     ContextMenu,
@@ -218,6 +234,7 @@ export default {
       isOffline: !navigator.onLine,
       isViewingDashboard: false,
       isViewingSalesReport: false,
+      isViewingTvaManagement: false,
       readonlyTicket: null,
     };
   },
@@ -362,6 +379,7 @@ export default {
       if (!proceed) return;
       this.isViewingDashboard = false;
       this.isViewingSalesReport = false;
+      this.isViewingTvaManagement = false;
       this.readonlyTicket = null;
       this.selectedCategoryId = catId;
       this.focusedProduct = null;
@@ -376,6 +394,7 @@ export default {
       if (!proceed) return;
       this.isViewingDashboard = false;
       this.isViewingSalesReport = false;
+      this.isViewingTvaManagement = false;
       this.readonlyTicket = null;
       this.focusedProduct = prod;
       this.focusedCategory = null;
@@ -387,6 +406,7 @@ export default {
       }
       this.isViewingDashboard = false;
       this.isViewingSalesReport = false;
+      this.isViewingTvaManagement = false;
       this.readonlyTicket = null;
       if (this.draftState.draftProduct) {
         this.preselectedCategoryId = this.draftState.draftProduct.category_id;
@@ -404,6 +424,7 @@ export default {
       }
       this.isViewingDashboard = false;
       this.isViewingSalesReport = false;
+      this.isViewingTvaManagement = false;
       this.readonlyTicket = null;
       this.preselectedParentCategoryId = parentCategoryId;
       this.categoryDetailMode = 'create';
@@ -414,6 +435,7 @@ export default {
     async confirmExitCreateMode() {
       const detail = this.$refs.productDetail;
       const catDetail = this.$refs.categoryDetail;
+      const tvaDetail = this.$refs.tvaView;
 
       if (detail) {
         if (detail.currentStateName === 'view') {
@@ -499,6 +521,32 @@ export default {
         }
       }
 
+      if (tvaDetail) {
+        const isDirty = tvaDetail.isDirty();
+        if (!isDirty) {
+          this.isViewingTvaManagement = false;
+          return true;
+        }
+
+        let choice = 1; // Default to stay
+        if (
+          window.electronAPI &&
+          typeof window.electronAPI.showExitConfirmationDialog === 'function'
+        ) {
+          choice = await window.electronAPI.showExitConfirmationDialog('tva');
+        } else {
+          const res = window.confirm(this.$t('unsaved_changes_msg'));
+          choice = res ? 0 : 1;
+        }
+
+        if (choice === 0) {
+          this.isViewingTvaManagement = false;
+          return true;
+        } else {
+          return false; // Stay
+        }
+      }
+
       this.isCreatingProduct = false;
       this.categoryDetailMode = null;
       return true;
@@ -535,6 +583,7 @@ export default {
         this.categoryDetailMode = null;
         this.isViewingDashboard = false;
         this.isViewingSalesReport = false;
+        this.isViewingTvaManagement = false;
         this.readonlyTicket = null;
       }
     },
@@ -556,6 +605,7 @@ export default {
       this.selectedCategoryId = null;
       this.isViewingDashboard = true;
       this.isViewingSalesReport = false;
+      this.isViewingTvaManagement = false;
     },
     async handleSelectSalesReport() {
       const proceed = await this.confirmExitCreateMode();
@@ -568,6 +618,26 @@ export default {
       this.selectedCategoryId = null;
       this.isViewingDashboard = false;
       this.isViewingSalesReport = true;
+      this.isViewingTvaManagement = false;
+    },
+    async handleSelectTvaManagement() {
+      const proceed = await this.confirmExitCreateMode();
+      if (!proceed) return;
+      this.basketState.isViewing = false;
+      this.focusedProduct = null;
+      this.focusedCategory = null;
+      this.categoryDetailMode = null;
+      this.readonlyTicket = null;
+      this.selectedCategoryId = null;
+      this.isViewingDashboard = false;
+      this.isViewingSalesReport = false;
+      this.isViewingTvaManagement = true;
+    },
+    handleCloseTvaManagement() {
+      this.isViewingTvaManagement = false;
+    },
+    handleTvaSaved(updatedRates) {
+      this.tvaRates = updatedRates;
     },
     handleViewTicket(ticket) {
       this.readonlyTicket = ticket;

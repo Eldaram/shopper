@@ -47,6 +47,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    isViewingTvaManagement: {
+      type: Boolean,
+      default: false,
+    },
     readonlyTicket: {
       type: Object,
       default: null,
@@ -60,7 +64,7 @@ export default {
       default: false,
     },
   },
-  emits: ['select-category', 'select-dashboard', 'select-sales-report'],
+  emits: ['select-category', 'select-dashboard', 'select-sales-report', 'select-tva-management'],
   data() {
     return {
       basketState,
@@ -79,6 +83,9 @@ export default {
       }
       if (this.isViewingSalesReport) {
         return [{ name: this.$t('sales_report'), type: 'sales_report' }];
+      }
+      if (this.isViewingTvaManagement) {
+        return [{ name: this.$t('tva_management'), type: 'tva_management' }];
       }
 
       const result = [{ name: this.$t('all_catalogue'), type: 'home' }];
@@ -120,6 +127,10 @@ export default {
         this.$emit('select-category', item.id);
       } else if (item.type === 'dashboard') {
         this.$emit('select-dashboard');
+      } else if (item.type === 'sales_report') {
+        this.$emit('select-sales-report');
+      } else if (item.type === 'tva_management') {
+        this.$emit('select-tva-management');
       }
     },
   },

@@ -31,6 +31,17 @@ module.exports = {
         detail: t('unsaved_changes_category_detail'),
       });
       return result.response;
+    } else if (mode === 'tva') {
+      const result = await dialog.showMessageBox(mainWindow, {
+        type: 'warning',
+        buttons: [t('abandon'), t('stay')],
+        defaultId: 1,
+        cancelId: 1,
+        title: t('unsaved_changes_tva_title'),
+        message: t('unsaved_changes_tva_msg'),
+        detail: t('unsaved_changes_tva_detail'),
+      });
+      return result.response;
     } else {
       const result = await dialog.showMessageBox(mainWindow, {
         type: 'warning',
