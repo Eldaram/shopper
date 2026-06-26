@@ -57,7 +57,7 @@ export function prepareProductData(localProduct, finalImagePath, parsePrice) {
   return {
     name: localProduct.name.trim(),
     barcode: localProduct.barcode ? localProduct.barcode.trim() : null,
-    category_id: Number(localProduct.category_id),
+    category_id: localProduct.category_id != null ? Number(localProduct.category_id) : null,
     tva_id: Number(localProduct.tva_id),
     price_ht: parsePrice(localProduct.price_ht),
     price_ttc: parsePrice(localProduct.price_ttc),
@@ -195,10 +195,6 @@ export async function handleImageClick(vm) {
 export async function handleSave(vm) {
   if (!vm.localProduct.name?.trim()) {
     alert("Le nom de l'article est requis.");
-    return;
-  }
-  if (!vm.localProduct.category_id) {
-    alert('La catégorie est requise.');
     return;
   }
   if (!vm.localProduct.tva_id) {

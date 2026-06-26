@@ -122,19 +122,17 @@ class ProductController {
     if (!tva_id) {
       throw new Error('TVA ID is required');
     }
-    if (!category_id) {
-      throw new Error('Category ID is required');
+    if (category_id != null) {
+      const category = CategoryModel.findById(category_id);
+      if (!category) {
+        throw new Error(`Category with ID ${category_id} does not exist`);
+      }
     }
 
     // Reference existence checks
     const tva = TvaModel.findById(tva_id);
     if (!tva) {
       throw new Error(`TVA rate with ID ${tva_id} does not exist`);
-    }
-
-    const category = CategoryModel.findById(category_id);
-    if (!category) {
-      throw new Error(`Category with ID ${category_id} does not exist`);
     }
 
     if (type_id) {

@@ -58,8 +58,8 @@
 
     <div class="form-group">
       <label class="form-label">{{ $t('category') }}</label>
-      <select v-model="product.category_id" class="form-input" :disabled="!isEditable" required>
-        <option :value="null" disabled>{{ $t('choose_category') }}</option>
+      <select v-model="product.category_id" class="form-input" :disabled="!isEditable">
+        <option :value="null">{{ $t('no_category') }}</option>
         <option v-for="opt in categoryTreeOptions" :key="opt.id" :value="opt.id">
           {{ getCategoryDisplayName(opt) }}
         </option>
