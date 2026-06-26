@@ -159,9 +159,10 @@ fun CameraPreview(viewModel: ScannerViewModel) {
 
     AndroidView(
         factory = { ctx ->
-            val previewView = PreviewView(ctx)
-            val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
-
+            PreviewView(ctx)
+        },
+        update = { previewView ->
+            val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
             cameraProviderFuture.addListener({
                 val cameraProvider = cameraProviderFuture.get()
 
@@ -188,9 +189,7 @@ fun CameraPreview(viewModel: ScannerViewModel) {
                 } catch (e: Exception) {
                     Log.e("CameraPreview", "Use case binding failed", e)
                 }
-            }, ContextCompat.getMainExecutor(ctx))
-
-            previewView
+            }, ContextCompat.getMainExecutor(context))
         },
         modifier = Modifier.fillMaxSize()
     )
