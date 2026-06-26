@@ -53,13 +53,17 @@ export function checkIfFormDirty(localCategory, initial) {
 
 export async function handleSave(vm) {
   if (!vm.localCategory.name?.trim()) {
-    alert("Le nom de la catégorie est requis.");
+    alert('Le nom de la catégorie est requis.');
     return;
   }
 
   // A category cannot be its own parent
-  if (vm.currentStateName === 'edit' && vm.category && Number(vm.localCategory.parent_id) === Number(vm.category.id)) {
-    alert("Une catégorie ne peut pas être sa propre catégorie parente.");
+  if (
+    vm.currentStateName === 'edit' &&
+    vm.category &&
+    Number(vm.localCategory.parent_id) === Number(vm.category.id)
+  ) {
+    alert('Une catégorie ne peut pas être sa propre catégorie parente.');
     return;
   }
 

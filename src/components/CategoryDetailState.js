@@ -32,8 +32,6 @@ export class CategoryDetailState {
   handleSubmit() {}
 }
 
-
-
 export class EditState extends CategoryDetailState {
   isEditMode() {
     return true;

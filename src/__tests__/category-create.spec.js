@@ -60,8 +60,8 @@ describe('Category Manual Creation & Edition Tests', () => {
       // should be excluded, leaving 'Épicerie' (ID: 1) and 'Boissons' (ID: 2)
       const opts = getParentCategoryOptions(categoriesMock, 3);
       expect(opts).toHaveLength(2);
-      expect(opts.map(o => o.id)).toContain(1);
-      expect(opts.map(o => o.id)).toContain(2);
+      expect(opts.map((o) => o.id)).toContain(1);
+      expect(opts.map((o) => o.id)).toContain(2);
     });
   });
 
@@ -179,7 +179,9 @@ describe('Category Manual Creation & Edition Tests', () => {
       wrapper.vm.localCategory.parent_id = 3; // Self referencing
       await wrapper.vm.handleSave();
 
-      expect(spyAlert).toHaveBeenCalledWith('Une catégorie ne peut pas être sa propre catégorie parente.');
+      expect(spyAlert).toHaveBeenCalledWith(
+        'Une catégorie ne peut pas être sa propre catégorie parente.'
+      );
       expect(mockElectronAPI.updateCategory).not.toHaveBeenCalled();
     });
 
@@ -230,7 +232,7 @@ describe('Category Manual Creation & Edition Tests', () => {
 
       // Modify form so it's dirty
       wrapper.vm.localCategory.name = 'Dirty Soda';
-      
+
       await wrapper.vm.handleCancel();
 
       expect(mockElectronAPI.showExitConfirmationDialog).toHaveBeenCalledWith('category');

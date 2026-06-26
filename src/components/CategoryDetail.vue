@@ -47,11 +47,7 @@
               :disabled="!activeState || !activeState.isEditable()"
             >
               <option :value="null">{{ $t('root_category_option') }}</option>
-              <option
-                v-for="opt in parentCategoryOptions"
-                :key="opt.id"
-                :value="opt.id"
-              >
+              <option v-for="opt in parentCategoryOptions" :key="opt.id" :value="opt.id">
                 {{ getCategoryDisplayName(opt) }}
               </option>
             </select>
@@ -155,10 +151,7 @@ export default {
       return helpers.getFormData(this.localCategory);
     },
     isFormDirty() {
-      return helpers.checkIfFormDirty(
-        this.localCategory,
-        helpers.getInitialCategoryState(this)
-      );
+      return helpers.checkIfFormDirty(this.localCategory, helpers.getInitialCategoryState(this));
     },
     async handleImageClick() {
       try {

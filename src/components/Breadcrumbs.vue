@@ -82,9 +82,8 @@ export default {
       }
 
       const result = [{ name: this.$t('all_catalogue'), type: 'home' }];
-      const targetCategoryId = this.focusedCategory !== null
-        ? this.focusedCategory.parent_id
-        : this.selectedCategoryId;
+      const targetCategoryId =
+        this.focusedCategory !== null ? this.focusedCategory.parent_id : this.selectedCategoryId;
 
       if (targetCategoryId !== null && targetCategoryId !== undefined) {
         const catPath = [];

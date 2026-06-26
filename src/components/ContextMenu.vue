@@ -22,11 +22,7 @@
           $t('add_category') + (targetCategory ? ` ${$t('in')} ${targetCategory.name}` : '')
         }}</span>
       </div>
-      <div
-        v-if="targetCategory"
-        class="context-menu-item"
-        @click="handleEditCategory"
-      >
+      <div v-if="targetCategory" class="context-menu-item" @click="handleEditCategory">
         <span class="context-menu-icon">✏️</span>
         <span>{{ $t('edit_category') }}</span>
       </div>

@@ -134,7 +134,14 @@
 
     <!-- Floating Action Button (FAB) for fast item creation (hidden on basket/dashboard pages) -->
     <button
-      v-if="!basketState.isViewing && !isViewingDashboard && !isViewingSalesReport && categoryDetailMode === null && !focusedProduct && !isCreatingProduct"
+      v-if="
+        !basketState.isViewing &&
+        !isViewingDashboard &&
+        !isViewingSalesReport &&
+        categoryDetailMode === null &&
+        !focusedProduct &&
+        !isCreatingProduct
+      "
       class="fab-btn"
       @click="handleFabClick"
       title="Créer un article"
@@ -466,7 +473,6 @@ export default {
       }
 
       if (catDetail) {
-
         const isDirty = catDetail.isFormDirty();
         if (!isDirty) {
           this.categoryDetailMode = null;
