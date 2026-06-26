@@ -19,6 +19,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   createProduct: (data) => ipcRenderer.invoke('create-product', data),
   updateProduct: (id, data) => ipcRenderer.invoke('update-product', id, data),
   deleteProduct: (id) => ipcRenderer.invoke('delete-product', id),
+  createCategory: (data) => ipcRenderer.invoke('create-category', data),
+  updateCategory: (id, data) => ipcRenderer.invoke('update-category', id, data),
   deleteCategory: (id) => ipcRenderer.invoke('delete-category', id),
   selectImage: () => ipcRenderer.invoke('select-image'),
   saveImage: (filePath) => ipcRenderer.invoke('save-image', filePath),
@@ -30,6 +32,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setDeleteItemState: (enabled, label) => ipcRenderer.send('set-delete-item-state', enabled, label),
   onMenuCreateProduct: (callback) =>
     ipcRenderer.on('menu-create-product', (_event, value) => callback(value)),
+  onMenuCreateCategory: (callback) =>
+    ipcRenderer.on('menu-create-category', (_event, value) => callback(value)),
   onMenuDeleteItem: (callback) =>
     ipcRenderer.on('menu-delete-item', (_event, value) => callback(value)),
   setClearBasketEnabled: (enabled) => ipcRenderer.send('set-clear-basket-enabled', enabled),

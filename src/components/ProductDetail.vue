@@ -8,7 +8,7 @@
     </div>
 
     <div class="detail-card">
-      <ProductDetailImage
+      <ImageUploader
         :image-url="imageUrl"
         :image-load-error="imageLoadError"
         :is-editable="activeState && activeState.isImageClickable()"
@@ -64,18 +64,19 @@
 
 <script>
 import BaseButton from './BaseButton.vue';
-import ProductDetailImage from './ProductDetailImage.vue';
+import ImageUploader from './ImageUploader.vue';
 import ProductDetailForm from './ProductDetailForm.vue';
 import ProductDetailActions from './ProductDetailActions.vue';
 import { addToBasket } from '../utils/basketStore';
 import { ViewState, EditState, CreateState } from './ProductDetailState.js';
 import * as helpers from '../utils/productHelpers.js';
+import { dropImage } from '../utils/imageUploadHelper.js';
 
 export default {
   name: 'ProductDetail',
   components: {
     BaseButton,
-    ProductDetailImage,
+    ImageUploader,
     ProductDetailForm,
     ProductDetailActions,
   },
@@ -249,10 +250,11 @@ export default {
       }
     },
     handleDropImage(file) {
-      if (file.type.startsWith('image/')) {
+      const res = dropImage(file);
+      if (res) {
         this.imageLoadError = false;
-        this.localProduct.image_path = file.path || 'mock-path-for-testing';
-        this.localProduct.image_preview = URL.createObjectURL(file);
+        this.localProduct.image_path = res.path;
+        this.localProduct.image_preview = res.preview;
       }
     },
     handleSave() {

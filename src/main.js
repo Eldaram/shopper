@@ -6,6 +6,7 @@ import './styles/topbar.css';
 import './styles/breadcrumbs.css';
 import './styles/catalogue.css';
 import './styles/product-detail.css';
+import './styles/category-detail.css';
 import './styles/basket.css';
 import './styles/dashboard.css';
 import './styles/sales-report.css';
