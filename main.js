@@ -21,6 +21,8 @@ const translationHandlers = require('./src/ipc/translationHandlers');
 const ticketHandlers = require('./src/ipc/ticketHandlers');
 const salesReportHandlers = require('./src/ipc/salesReportHandlers');
 const themeHandlers = require('./src/ipc/themeHandlers');
+const barcodeServerHandlers = require('./src/ipc/barcodeServerHandlers');
+const barcodeServerController = require('./src/controllers/BarcodeServerController');
 const MenuService = require('./src/services/MenuService');
 
 // Global error nets for main process
@@ -123,6 +125,7 @@ function initializeApp() {
       ticketHandlers,
       salesReportHandlers,
       themeHandlers,
+      barcodeServerHandlers,
     ]);
 
     ipcMain.on('set-delete-item-state', (event, enabled, label) => {
@@ -134,6 +137,7 @@ function initializeApp() {
     });
 
     createWindow();
+    barcodeServerController.startServer(mainWindow);
 
     app.on('activate', () => {
       log.info('App activated (macOS).');

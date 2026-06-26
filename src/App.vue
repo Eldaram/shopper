@@ -55,6 +55,9 @@
           <!-- Theme Selector -->
           <ThemeSelector />
 
+          <!-- Barcode Scanner -->
+          <BarcodeScannerButton />
+
           <!-- Language Selector -->
           <LanguageSelector />
 
@@ -146,9 +149,11 @@ import BasketHeaderButton from './components/BasketHeaderButton.vue';
 import ContextMenu from './components/ContextMenu.vue';
 import LanguageSelector from './components/LanguageSelector.vue';
 import ThemeSelector from './components/ThemeSelector.vue';
+import BarcodeScannerButton from './components/BarcodeScannerButton.vue';
 import { loadBrowserMocks as getBrowserMocks } from './utils/mockData';
-import { basketState, confirmAndClearBasket } from './utils/basketStore';
+import { basketState, confirmAndClearBasket, addToBasket } from './utils/basketStore';
 import { draftState, saveDraft, clearDraft } from './utils/draftStore';
+import { searchState } from './utils/searchState';
 import catalogMethods from './utils/catalogManager';
 
 export default {
@@ -166,6 +171,7 @@ export default {
     ContextMenu,
     LanguageSelector,
     ThemeSelector,
+    BarcodeScannerButton,
   },
   data() {
     return {
@@ -246,6 +252,32 @@ export default {
     }
     if (window.electronAPI && typeof window.electronAPI.setClearBasketEnabled === 'function') {
       window.electronAPI.setClearBasketEnabled(this.basketState.items.length > 0);
+    }
+
+    if (window.electronAPI && typeof window.electronAPI.onBarcodeScanned === 'function') {
+      window.electronAPI.onBarcodeScanned((barcode) => {
+        console.log('Renderer: Received scanned barcode:', barcode);
+
+        // 1. If currently creating or editing a product, populate the barcode input!
+        if (this.isCreatingProduct || this.focusedProduct) {
+          const detailComponent = this.$refs.productDetail;
+          if (detailComponent && typeof detailComponent.handleBarcodeScanned === 'function') {
+            detailComponent.handleBarcodeScanned(barcode);
+            return;
+          }
+        }
+
+        // 2. Otherwise, check if a product matches this barcode in our list
+        const matchedProduct = this.products.find((p) => p.barcode === barcode);
+        if (matchedProduct) {
+          // Add it to the basket!
+          addToBasket(matchedProduct);
+          console.log(`Product added to basket: ${matchedProduct.name}`);
+        } else {
+          // If no matched product, set it in the search query so they can search/create it
+          searchState.query = barcode;
+        }
+      });
     }
   },
   beforeUnmount() {

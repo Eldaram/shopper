@@ -577,6 +577,22 @@
     "theme_light": {
       "fr": "Clair",
       "en": "Light"
+    },
+    "barcode_scanner_tooltip": {
+      "fr": "Scanner de codes-barres (Réseau local)",
+      "en": "Barcode scanner (Local network)"
+    },
+    "barcode_scanner_modal_title": {
+      "fr": "Connexion du scanner de codes-barres",
+      "en": "Barcode Scanner Connection"
+    },
+    "barcode_scanner_modal_desc": {
+      "fr": "Scannez ce code QR avec l'application Android pour utiliser votre téléphone comme scanner de codes-barres.",
+      "en": "Scan this QR code with the Android app to use your phone as a barcode scanner."
+    },
+    "barcode_scanner_close": {
+      "fr": "Fermer la connexion",
+      "en": "Close connection"
     }
   }
 }

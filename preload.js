@@ -54,4 +54,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkout: (data) => ipcRenderer.invoke('checkout', data),
   generateSalesReport: (month, format) =>
     ipcRenderer.invoke('generate-sales-report', { month, format }),
+  onQRCodeGenerated: (callback) =>
+    ipcRenderer.on('qr-code-generated', (_event, value) => callback(value)),
+  onSocketStatusChanged: (callback) =>
+    ipcRenderer.on('socket-status-changed', (_event, value) => callback(value)),
+  onBarcodeScanned: (callback) =>
+    ipcRenderer.on('barcode-scanned', (_event, value) => callback(value)),
+  getSocketStatus: () => ipcRenderer.invoke('get-socket-status'),
+  closeSocket: () => ipcRenderer.invoke('close-socket'),
+  getQRCode: () => ipcRenderer.invoke('get-qr-code'),
 });
