@@ -1,0 +1,329 @@
+/* Main Workspace Layout */
+.workspace {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Topbar Styling */
+.topbar {
+  height: 72px;
+  padding: 0 32px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: rgba(26, 35, 39, 0.4);
+  backdrop-filter: blur(8px);
+  position: relative;
+  z-index: 100;
+}
+
+[data-theme='light'] .topbar {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Header Topbar Right Layout */
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+}
+
+/* Search Bar */
+.search-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 240px;
+}
+
+.search-input {
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-primary);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+[data-theme='light'] .search-input {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.search-input:focus {
+  border-color: var(--color-muted-teal);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+/* Header Basket Button */
+.basket-header-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  height: 38px;
+}
+
+[data-theme='light'] .basket-header-btn {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.basket-header-btn:hover {
+  border-color: var(--color-muted-teal);
+  background-color: rgba(132, 169, 140, 0.1);
+  color: var(--color-muted-teal);
+  transform: translateY(-1px);
+}
+
+.basket-header-btn.active {
+  background-color: var(--color-deep-teal);
+  border-color: var(--color-muted-teal);
+  color: var(--text-primary);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.basket-btn-icon {
+  font-size: 16px;
+}
+
+/* Language Selector */
+.lang-selector-container {
+  position: relative;
+  display: inline-block;
+}
+
+.lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  height: 38px;
+  box-shadow: none;
+}
+
+[data-theme='light'] .lang-btn {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.lang-btn:hover {
+  border-color: var(--color-muted-teal);
+  background-color: rgba(132, 169, 140, 0.1);
+  color: var(--color-muted-teal);
+}
+
+.lang-btn:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.lang-flag {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.lang-name {
+  font-size: 13px;
+}
+
+.lang-arrow {
+  font-size: 9px;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+  margin-left: 2px;
+}
+
+.lang-arrow.open {
+  transform: rotate(180deg);
+}
+
+.lang-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  min-width: 140px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+[data-theme='light'] .lang-dropdown {
+  box-shadow: var(--card-shadow);
+}
+
+.lang-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.lang-dropdown-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--color-muted-teal);
+}
+
+[data-theme='light'] .lang-dropdown-item:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.lang-dropdown-item.active {
+  background-color: var(--color-deep-teal);
+  color: var(--text-primary);
+}
+
+/* Theme Selector */
+.theme-selector-container {
+  position: relative;
+  display: inline-block;
+}
+
+.theme-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  height: 38px;
+  box-shadow: none;
+}
+
+[data-theme='light'] .theme-btn {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.theme-btn:hover {
+  border-color: var(--color-muted-teal);
+  background-color: rgba(132, 169, 140, 0.1);
+  color: var(--color-muted-teal);
+}
+
+.theme-btn:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.theme-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.theme-name {
+  font-size: 13px;
+}
+
+.theme-arrow {
+  font-size: 9px;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+  margin-left: 2px;
+}
+
+.theme-arrow.open {
+  transform: rotate(180deg);
+}
+
+.theme-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  min-width: 140px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+[data-theme='light'] .theme-dropdown {
+  box-shadow: var(--card-shadow);
+}
+
+.theme-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.theme-dropdown-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--color-muted-teal);
+}
+
+[data-theme='light'] .theme-dropdown-item:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.theme-dropdown-item.active {
+  background-color: var(--color-deep-teal);
+  color: var(--text-primary);
+}
+
+/* Shared Vue Dropdown Fade Animations */
+.fade-enter-active,
+.fade-leave-active {
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}

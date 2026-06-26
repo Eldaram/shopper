@@ -52,6 +52,9 @@
             ✈️
           </span>
 
+          <!-- Theme Selector -->
+          <ThemeSelector />
+
           <!-- Language Selector -->
           <LanguageSelector />
 
@@ -142,6 +145,7 @@ import SearchBar from './components/SearchBar.vue';
 import BasketHeaderButton from './components/BasketHeaderButton.vue';
 import ContextMenu from './components/ContextMenu.vue';
 import LanguageSelector from './components/LanguageSelector.vue';
+import ThemeSelector from './components/ThemeSelector.vue';
 import { loadBrowserMocks as getBrowserMocks } from './utils/mockData';
 import { basketState, confirmAndClearBasket } from './utils/basketStore';
 import { draftState, saveDraft, clearDraft } from './utils/draftStore';
@@ -161,6 +165,7 @@ export default {
     BasketHeaderButton,
     ContextMenu,
     LanguageSelector,
+    ThemeSelector,
   },
   data() {
     return {

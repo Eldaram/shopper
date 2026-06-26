@@ -1,0 +1,120 @@
+/* Sidebar Styling */
+.sidebar {
+  width: 280px;
+  height: 100%;
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.sidebar-header {
+  padding: 24px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo-btn {
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: opacity 0.2s ease;
+}
+
+.logo-btn:hover {
+  opacity: 0.85;
+  transform: none;
+  box-shadow: none;
+}
+
+.logo-icon {
+  font-size: 28px;
+}
+
+.logo-text {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text-primary);
+}
+
+.logo-badge {
+  font-size: 10px;
+  background-color: var(--color-deep-teal);
+  color: var(--color-ash-grey);
+  padding: 2px 6px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 12px;
+}
+
+.nav-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  padding-left: 12px;
+}
+
+.nav-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.nav-item:hover {
+  background-color: rgba(82, 121, 111, 0.08);
+  color: var(--color-muted-teal);
+  padding-left: 20px;
+}
+
+.nav-item.active {
+  background-color: var(--color-deep-teal);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(82, 121, 111, 0.2);
+}
+
+.nav-item-count {
+  font-size: 11px;
+  background-color: rgba(0, 0, 0, 0.2);
+  color: var(--text-secondary);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.nav-item.active .nav-item-count {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}

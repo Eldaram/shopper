@@ -2,8 +2,22 @@ const fs = require('fs');
 const path = require('path');
 const { app } = require('electron');
 
+const instances = {};
+
 class Store {
   constructor(opts = {}) {
+    const configName = opts.configName || 'config';
+
+    // If an instance for this config file already exists, reuse it and merge defaults
+    if (instances[configName]) {
+      const existing = instances[configName];
+      if (opts.defaults) {
+        existing.defaults = { ...existing.defaults, ...opts.defaults };
+        existing.data = { ...existing.defaults, ...existing.data };
+      }
+      return existing;
+    }
+
     let userDataPath = '';
     try {
       userDataPath = app.getPath('userData');
@@ -23,10 +37,11 @@ class Store {
       }
     }
 
-    const configName = opts.configName || 'config';
     this.path = path.join(userDataPath, `${configName}.json`);
     this.defaults = opts.defaults || {};
     this.data = this.loadData();
+
+    instances[configName] = this;
   }
 
   loadData() {

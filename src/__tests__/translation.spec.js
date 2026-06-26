@@ -46,6 +46,7 @@ Module.prototype.require = function (id) {
 const TranslationParser = require('../models/TranslationParser');
 const TranslationModel = require('../models/TranslationModel');
 const TranslationController = require('../controllers/TranslationController');
+const ThemeController = require('../controllers/ThemeController');
 
 describe('Translation Module', () => {
   beforeEach(() => {
@@ -120,6 +121,24 @@ describe('Translation Module', () => {
 
       TranslationController.setCurrentLanguage('en');
       expect(TranslationController.getTextForRenderer('basket')).toBe('Basket');
+    });
+  });
+
+  describe('ThemeController', () => {
+    it('should default to dark theme', () => {
+      expect(ThemeController.getTheme()).toBe('dark');
+    });
+
+    it('should allow setting theme to light and dark', () => {
+      ThemeController.setTheme('light');
+      expect(ThemeController.getTheme()).toBe('light');
+
+      ThemeController.setTheme('dark');
+      expect(ThemeController.getTheme()).toBe('dark');
+    });
+
+    it('should throw an error for unsupported themes', () => {
+      expect(() => ThemeController.setTheme('invalid')).toThrow();
     });
   });
 });

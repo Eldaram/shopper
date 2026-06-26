@@ -565,6 +565,18 @@
     "sales_report_error": {
       "fr": "Erreur lors de l'enregistrement du rapport.",
       "en": "Error while saving the report."
+    },
+    "choose_theme": {
+      "fr": "Choisir le thème",
+      "en": "Choose theme"
+    },
+    "theme_dark": {
+      "fr": "Sombre",
+      "en": "Dark"
+    },
+    "theme_light": {
+      "fr": "Clair",
+      "en": "Light"
     }
   }
 }
