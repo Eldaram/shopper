@@ -242,6 +242,18 @@
       "fr": "Si vous quittez, toutes les modifications non enregistrées seront perdues.",
       "en": "If you leave, all unsaved changes will be lost."
     },
+    "unsaved_changes_category_title": {
+      "fr": "Modifications de catégorie non enregistrées",
+      "en": "Unsaved Category Changes"
+    },
+    "unsaved_changes_category_msg": {
+      "fr": "Voulez-vous abandonner les modifications de cette catégorie ?",
+      "en": "Do you want to discard changes to this category?"
+    },
+    "unsaved_changes_category_detail": {
+      "fr": "Si vous quittez, les modifications apportées à la catégorie seront perdues.",
+      "en": "If you leave, your changes to this category will be lost."
+    },
     "abandon": {
       "fr": "Abandonner",
       "en": "Discard"
@@ -593,6 +605,46 @@
     "barcode_scanner_close": {
       "fr": "Fermer la connexion",
       "en": "Close connection"
+    },
+    "menu_add_category": {
+      "fr": "Ajouter une catégorie",
+      "en": "Add Category"
+    },
+    "menu_delete_category": {
+      "fr": "Supprimer la catégorie",
+      "en": "Delete Category"
+    },
+    "category_details": {
+      "fr": "Détails de la catégorie",
+      "en": "Category Details"
+    },
+    "edit_category": {
+      "fr": "Modifier la catégorie",
+      "en": "Edit category"
+    },
+    "create_category": {
+      "fr": "Créer une catégorie",
+      "en": "Create category"
+    },
+    "category_name": {
+      "fr": "Nom de la catégorie",
+      "en": "Category name"
+    },
+    "parent_category": {
+      "fr": "Catégorie parente",
+      "en": "Parent category"
+    },
+    "root_category_option": {
+      "fr": "Aucune (Racine)",
+      "en": "None (Root)"
+    },
+    "add_category": {
+      "fr": "Ajouter une catégorie",
+      "en": "Add category"
+    },
+    "delete_category": {
+      "fr": "Supprimer la catégorie",
+      "en": "Delete category"
     }
   }
 }

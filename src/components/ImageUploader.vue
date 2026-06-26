@@ -44,7 +44,7 @@
 
 <script>
 export default {
-  name: 'ProductDetailImage',
+  name: 'ImageUploader',
   props: {
     imageUrl: {
       type: String,

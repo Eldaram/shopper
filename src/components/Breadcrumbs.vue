@@ -51,6 +51,14 @@ export default {
       type: Object,
       default: null,
     },
+    focusedCategory: {
+      type: Object,
+      default: null,
+    },
+    isCreatingCategory: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: ['select-category', 'select-dashboard', 'select-sales-report'],
   data() {
@@ -74,9 +82,13 @@ export default {
       }
 
       const result = [{ name: this.$t('all_catalogue'), type: 'home' }];
-      if (this.selectedCategoryId !== null) {
+      const targetCategoryId = this.focusedCategory !== null
+        ? this.focusedCategory.parent_id
+        : this.selectedCategoryId;
+
+      if (targetCategoryId !== null && targetCategoryId !== undefined) {
         const catPath = [];
-        let current = this.categories.find((c) => c.id === this.selectedCategoryId);
+        let current = this.categories.find((c) => c.id === targetCategoryId);
         while (current) {
           catPath.push({ id: current.id, name: current.name, type: 'category' });
           current = current.parent_id
@@ -91,6 +103,10 @@ export default {
         result.push({ name: this.focusedProduct.name, type: 'product' });
       } else if (this.isCreatingProduct) {
         result.push({ name: this.$t('create_product'), type: 'product' });
+      } else if (this.focusedCategory !== null) {
+        result.push({ name: this.focusedCategory.name, type: 'category-detail' });
+      } else if (this.isCreatingCategory) {
+        result.push({ name: this.$t('create_category'), type: 'category-detail' });
       }
       return result;
     },

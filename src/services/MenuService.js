@@ -41,6 +41,15 @@ class MenuService {
             },
           },
           {
+            label: t('menu_add_category'),
+            accelerator: 'CmdOrCtrl+Shift+N',
+            click: () => {
+              if (window && !window.isDestroyed()) {
+                window.webContents.send('menu-create-category');
+              }
+            },
+          },
+          {
             id: 'delete-item',
             label: t('menu_delete_product'),
             accelerator: 'CmdOrCtrl+D',

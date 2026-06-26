@@ -1,3 +1,5 @@
+import { selectImage } from './imageUploadHelper.js';
+
 export function parsePrice(val) {
   if (val === undefined || val === null) return 0;
   let str = String(val).trim();
@@ -30,44 +32,7 @@ export function formatDate(dateStr) {
   }
 }
 
-export function getCategoryDisplayName(opt) {
-  const spaces = '\u00A0\u00A0\u00A0\u00A0';
-  return spaces.repeat(opt.indent) + (opt.indent > 0 ? '└─ ' : '') + opt.name;
-}
-
-export function getCategoryTreeOptions(categories) {
-  const roots = categories.filter((c) => c.parent_id === null);
-  const options = [];
-
-  const traverse = (category, level = 0) => {
-    options.push({
-      id: category.id,
-      name: category.name,
-      indent: level,
-    });
-    const children = categories.filter((c) => c.parent_id === category.id);
-    for (const child of children) {
-      traverse(child, level + 1);
-    }
-  };
-
-  for (const root of roots) {
-    traverse(root, 0);
-  }
-
-  const orphaned = categories.filter(
-    (c) => c.parent_id !== null && !categories.some((p) => p.id === c.parent_id)
-  );
-  for (const orphan of orphaned) {
-    options.push({
-      id: orphan.id,
-      name: orphan.name,
-      indent: 0,
-    });
-  }
-
-  return options;
-}
+export { getCategoryDisplayName, getCategoryTreeOptions } from './categoryTreeHelpers.js';
 
 export function checkIfFormDirty(localProduct, initial, parser) {
   return (
@@ -216,26 +181,11 @@ export function onPriceTtcInput(vm) {
 export async function handleImageClick(vm) {
   if (vm.activeState && vm.activeState.isViewMode()) return;
   try {
-    if (window.electronAPI && typeof window.electronAPI.selectImage === 'function') {
-      const res = await window.electronAPI.selectImage();
-      if (res) {
-        vm.imageLoadError = false;
-        vm.localProduct.image_path = res.path;
-        vm.localProduct.image_preview = res.preview;
-      }
-    } else {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      input.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          vm.imageLoadError = false;
-          vm.localProduct.image_path = 'mock-path-for-testing';
-          vm.localProduct.image_preview = URL.createObjectURL(file);
-        }
-      };
-      input.click();
+    const res = await selectImage();
+    if (res) {
+      vm.imageLoadError = false;
+      vm.localProduct.image_path = res.path;
+      vm.localProduct.image_preview = res.preview;
     }
   } catch (err) {
     console.error('Error selecting image:', err);
@@ -260,7 +210,11 @@ export async function handleSave(vm) {
     let finalImagePath = null;
     if (vm.localProduct.image_path) {
       if (window.electronAPI && typeof window.electronAPI.saveImage === 'function') {
-        if (vm.localProduct.image_path.startsWith('media://')) {
+        if (
+          vm.localProduct.image_path.startsWith('media://') ||
+          vm.localProduct.image_path.startsWith('http://') ||
+          vm.localProduct.image_path.startsWith('https://')
+        ) {
           finalImagePath = vm.localProduct.image_path;
         } else if (vm.localProduct.image_path !== 'mock-path-for-testing') {
           finalImagePath = await window.electronAPI.saveImage(vm.localProduct.image_path);

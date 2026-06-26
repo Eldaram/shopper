@@ -1,7 +1,7 @@
 const { dialog } = require('electron');
 
 module.exports = {
-  'show-exit-dialog': async (event, isCreating) => {
+  'show-exit-dialog': async (event, mode) => {
     const mainModule = require('../../main');
     const mainWindow = mainModule.getMainWindow ? mainModule.getMainWindow() : null;
 
@@ -9,7 +9,7 @@ module.exports = {
     const t = (key) =>
       TranslationController.getText(TranslationController.getCurrentLanguage(), key);
 
-    if (isCreating) {
+    if (mode === 'product_create' || mode === true) {
       const result = await dialog.showMessageBox(mainWindow, {
         type: 'question',
         buttons: [t('keep_draft'), t('cancel'), t('abandon')],
@@ -18,6 +18,17 @@ module.exports = {
         title: t('creation_exit_title'),
         message: t('creation_exit_msg'),
         detail: t('creation_exit_detail'),
+      });
+      return result.response;
+    } else if (mode === 'category') {
+      const result = await dialog.showMessageBox(mainWindow, {
+        type: 'warning',
+        buttons: [t('abandon'), t('stay')],
+        defaultId: 1,
+        cancelId: 1,
+        title: t('unsaved_changes_category_title'),
+        message: t('unsaved_changes_category_msg'),
+        detail: t('unsaved_changes_category_detail'),
       });
       return result.response;
     } else {

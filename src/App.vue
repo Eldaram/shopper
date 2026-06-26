@@ -23,6 +23,8 @@
           :selected-category-id="selectedCategoryId"
           :focused-product="focusedProduct"
           :is-creating-product="isCreatingProduct"
+          :focused-category="focusedCategory"
+          :is-creating-category="categoryDetailMode === 'create'"
           :is-viewing-dashboard="isViewingDashboard"
           :is-viewing-sales-report="isViewingSalesReport"
           :readonly-ticket="readonlyTicket"
@@ -37,6 +39,7 @@
             v-if="
               !focusedProduct &&
               !isCreatingProduct &&
+              categoryDetailMode === null &&
               !basketState.isViewing &&
               !isViewingDashboard &&
               !isViewingSalesReport
@@ -102,6 +105,20 @@
           />
         </div>
 
+        <div v-else-if="categoryDetailMode !== null">
+          <CategoryDetail
+            ref="categoryDetail"
+            :category="focusedCategory"
+            :mode="categoryDetailMode"
+            :preselected-parent-id="preselectedParentCategoryId"
+            :categories="categories"
+            @close="handleCloseCategoryDetail"
+            @category-created="handleCategoryCreated"
+            @category-updated="handleCategoryUpdated"
+            @delete="deleteFocusedCategory"
+          />
+        </div>
+
         <CatalogueView
           v-else
           :categories="categories"
@@ -117,7 +134,7 @@
 
     <!-- Floating Action Button (FAB) for fast item creation (hidden on basket/dashboard pages) -->
     <button
-      v-if="!basketState.isViewing && !isViewingDashboard && !isViewingSalesReport"
+      v-if="!basketState.isViewing && !isViewingDashboard && !isViewingSalesReport && categoryDetailMode === null && !focusedProduct && !isCreatingProduct"
       class="fab-btn"
       @click="handleFabClick"
       title="Créer un article"
@@ -132,6 +149,8 @@
       @delete-product="handleDeleteProductFromContextMenu"
       @delete-category="handleDeleteCategoryFromContextMenu"
       @create-item="handleCreateItemFromContextMenu"
+      @create-category="handleCreateCategoryFromContextMenu"
+      @edit-category="handleEditCategoryFromContextMenu"
     />
   </div>
 </template>
@@ -140,6 +159,7 @@
 import Sidebar from './components/Sidebar.vue';
 import Breadcrumbs from './components/Breadcrumbs.vue';
 import ProductDetail from './components/ProductDetail.vue';
+import CategoryDetail from './components/CategoryDetail.vue';
 import BasketView from './components/BasketView.vue';
 import CatalogueView from './components/CatalogueView.vue';
 import DashboardView from './components/DashboardView.vue';
@@ -162,6 +182,7 @@ export default {
     Sidebar,
     Breadcrumbs,
     ProductDetail,
+    CategoryDetail,
     BasketView,
     CatalogueView,
     DashboardView,
@@ -181,6 +202,9 @@ export default {
       selectedCategoryId: null,
       focusedProduct: null,
       isCreatingProduct: false,
+      focusedCategory: null,
+      categoryDetailMode: null,
+      preselectedParentCategoryId: null,
       draftState,
       preselectedCategoryId: null,
       basketState,
@@ -235,10 +259,17 @@ export default {
         this.openCreateProduct(this.selectedCategoryId);
       });
     }
+    if (window.electronAPI && typeof window.electronAPI.onMenuCreateCategory === 'function') {
+      window.electronAPI.onMenuCreateCategory(() => {
+        this.openCreateCategory(this.selectedCategoryId);
+      });
+    }
     if (window.electronAPI && typeof window.electronAPI.onMenuDeleteItem === 'function') {
       window.electronAPI.onMenuDeleteItem(async () => {
         if (this.focusedProduct) {
           await this.deleteProduct(this.focusedProduct);
+        } else if (this.focusedCategory) {
+          await this.deleteCategory(this.focusedCategory);
         } else if (this.selectedCategoryId !== null) {
           const cat = this.categories.find((c) => c.id === this.selectedCategoryId);
           if (cat) await this.deleteCategory(cat);
@@ -298,6 +329,12 @@ export default {
       },
       immediate: true,
     },
+    focusedCategory: {
+      handler() {
+        this.updateDeleteMenuState();
+      },
+      immediate: true,
+    },
     selectedCategoryId: {
       handler() {
         this.updateDeleteMenuState();
@@ -321,6 +358,8 @@ export default {
       this.readonlyTicket = null;
       this.selectedCategoryId = catId;
       this.focusedProduct = null;
+      this.focusedCategory = null;
+      this.isCreatingCategory = false;
     },
     async handleSelectProduct(prod) {
       if (this.basketState.isViewing) {
@@ -332,6 +371,8 @@ export default {
       this.isViewingSalesReport = false;
       this.readonlyTicket = null;
       this.focusedProduct = prod;
+      this.focusedCategory = null;
+      this.isCreatingCategory = false;
     },
     openCreateProduct(categoryId = null) {
       if (this.basketState.isViewing) {
@@ -347,77 +388,126 @@ export default {
       }
       this.isCreatingProduct = true;
       this.focusedProduct = null;
+      this.focusedCategory = null;
+      this.categoryDetailMode = null;
+    },
+    openCreateCategory(parentCategoryId = null) {
+      if (this.basketState.isViewing) {
+        this.basketState.isViewing = false;
+      }
+      this.isViewingDashboard = false;
+      this.isViewingSalesReport = false;
+      this.readonlyTicket = null;
+      this.preselectedParentCategoryId = parentCategoryId;
+      this.categoryDetailMode = 'create';
+      this.focusedCategory = null;
+      this.focusedProduct = null;
+      this.isCreatingProduct = false;
     },
     async confirmExitCreateMode() {
       const detail = this.$refs.productDetail;
-      if (!detail) {
-        this.isCreatingProduct = false;
-        return true;
-      }
+      const catDetail = this.$refs.categoryDetail;
 
-      if (detail.currentStateName === 'view') {
-        this.isCreatingProduct = false;
-        return true;
-      }
-
-      const isDirty = detail.isFormDirty();
-      const isDraftLoaded = this.draftState.draftProduct !== null;
-      if (!isDirty && !isDraftLoaded) {
-        this.isCreatingProduct = false;
-        return true;
-      }
-
-      if (this.isCreatingProduct) {
-        let choice = 2; // Default to Discard (2 is Discard/Abandon)
-        if (
-          window.electronAPI &&
-          typeof window.electronAPI.showExitConfirmationDialog === 'function'
-        ) {
-          choice = await window.electronAPI.showExitConfirmationDialog(true);
-        } else {
-          const res = window.confirm(
-            "Voulez-vous garder l'article en brouillon ?\n\nOK = Garder le brouillon\nAnnuler = Abandonner"
-          );
-          choice = res ? 0 : 2;
+      if (detail) {
+        if (detail.currentStateName === 'view') {
+          this.isCreatingProduct = false;
+          return true;
         }
 
-        if (choice === 0) {
-          if (this.$refs.productDetail) {
-            saveDraft(this.$refs.productDetail.getFormData());
+        const isDirty = detail.isFormDirty();
+        const isDraftLoaded = this.draftState.draftProduct !== null;
+        if (!isDirty && !isDraftLoaded) {
+          this.isCreatingProduct = false;
+          return true;
+        }
+
+        if (this.isCreatingProduct) {
+          let choice = 2; // Default to Discard
+          if (
+            window.electronAPI &&
+            typeof window.electronAPI.showExitConfirmationDialog === 'function'
+          ) {
+            choice = await window.electronAPI.showExitConfirmationDialog(true);
+          } else {
+            const res = window.confirm(
+              "Voulez-vous garder l'article en brouillon ?\n\nOK = Garder le brouillon\nAnnuler = Abandonner"
+            );
+            choice = res ? 0 : 2;
           }
-          this.isCreatingProduct = false;
-          return true;
-        } else if (choice === 1) {
-          return false; // Stay on page
+
+          if (choice === 0) {
+            saveDraft(detail.getFormData());
+            this.isCreatingProduct = false;
+            return true;
+          } else if (choice === 1) {
+            return false; // Stay on page
+          } else {
+            clearDraft();
+            this.isCreatingProduct = false;
+            return true;
+          }
         } else {
-          clearDraft();
-          this.isCreatingProduct = false;
+          let choice = 1; // Default to stay
+          if (
+            window.electronAPI &&
+            typeof window.electronAPI.showExitConfirmationDialog === 'function'
+          ) {
+            choice = await window.electronAPI.showExitConfirmationDialog(false);
+          } else {
+            const res = window.confirm(this.$t('unsaved_changes_msg'));
+            choice = res ? 0 : 1;
+          }
+          if (choice === 0) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+      }
+
+      if (catDetail) {
+
+        const isDirty = catDetail.isFormDirty();
+        if (!isDirty) {
+          this.categoryDetailMode = null;
           return true;
         }
-      } else {
-        let choice = 1; // Default to stay (1 is stay)
+
+        let choice = 1; // Default to stay
         if (
           window.electronAPI &&
           typeof window.electronAPI.showExitConfirmationDialog === 'function'
         ) {
-          choice = await window.electronAPI.showExitConfirmationDialog(false);
+          choice = await window.electronAPI.showExitConfirmationDialog('category');
         } else {
           const res = window.confirm(this.$t('unsaved_changes_msg'));
-          choice = res ? 0 : 1; // 0 = Abandonner, 1 = Rester
+          choice = res ? 0 : 1;
         }
 
         if (choice === 0) {
+          this.categoryDetailMode = null;
+          this.focusedCategory = null;
           return true;
         } else {
-          return false; // Stay on page
+          return false; // Stay
         }
       }
+
+      this.isCreatingProduct = false;
+      this.categoryDetailMode = null;
+      return true;
     },
     async handleCloseDetail() {
       const proceed = await this.confirmExitCreateMode();
       if (!proceed) return;
       this.focusedProduct = null;
       this.isCreatingProduct = false;
+    },
+    async handleCloseCategoryDetail() {
+      const proceed = await this.confirmExitCreateMode();
+      if (!proceed) return;
+      this.focusedCategory = null;
+      this.categoryDetailMode = null;
     },
     handleFabClick() {
       this.openCreateProduct(this.selectedCategoryId);
@@ -435,6 +525,8 @@ export default {
       if (this.basketState.isViewing) {
         this.focusedProduct = null;
         this.isCreatingProduct = false;
+        this.focusedCategory = null;
+        this.categoryDetailMode = null;
         this.isViewingDashboard = false;
         this.isViewingSalesReport = false;
         this.readonlyTicket = null;
@@ -452,6 +544,8 @@ export default {
       if (!proceed) return;
       this.basketState.isViewing = false;
       this.focusedProduct = null;
+      this.focusedCategory = null;
+      this.categoryDetailMode = null;
       this.readonlyTicket = null;
       this.selectedCategoryId = null;
       this.isViewingDashboard = true;
@@ -462,6 +556,8 @@ export default {
       if (!proceed) return;
       this.basketState.isViewing = false;
       this.focusedProduct = null;
+      this.focusedCategory = null;
+      this.categoryDetailMode = null;
       this.readonlyTicket = null;
       this.selectedCategoryId = null;
       this.isViewingDashboard = false;
@@ -493,6 +589,25 @@ export default {
       const cat = category || this.contextMenu.targetCategory;
       this.openCreateProduct(cat?.id || null);
     },
+    handleCreateCategoryFromContextMenu(category) {
+      const cat = category || this.contextMenu.targetCategory;
+      this.openCreateCategory(cat?.id || null);
+    },
+    handleEditCategoryFromContextMenu(category) {
+      const cat = category || this.contextMenu.targetCategory;
+      if (cat) {
+        if (this.basketState.isViewing) {
+          this.basketState.isViewing = false;
+        }
+        this.isViewingDashboard = false;
+        this.isViewingSalesReport = false;
+        this.readonlyTicket = null;
+        this.focusedCategory = cat;
+        this.categoryDetailMode = 'edit';
+        this.focusedProduct = null;
+        this.isCreatingProduct = false;
+      }
+    },
     async handleDeleteProductFromContextMenu(product) {
       const prod = product || this.contextMenu.targetProduct;
       if (prod) {
@@ -504,11 +619,33 @@ export default {
         await this.deleteCategory(category);
       }
     },
+    async handleCategoryCreated(newCategory) {
+      this.categoryDetailMode = null;
+      this.focusedCategory = null;
+      await this.fetchData();
+      this.selectedCategoryId = newCategory.id;
+    },
+    async handleCategoryUpdated(catId) {
+      await this.fetchData();
+      this.focusedCategory = null;
+      this.categoryDetailMode = null;
+    },
+    async deleteFocusedCategory() {
+      if (this.focusedCategory) {
+        const cat = this.focusedCategory;
+        await this.deleteCategory(cat);
+        if (!this.categories.some((c) => c.id === cat.id)) {
+          this.focusedCategory = null;
+        }
+      }
+    },
     updateDeleteMenuState() {
       if (!window.electronAPI || typeof window.electronAPI.setDeleteItemState !== 'function')
         return;
       if (this.focusedProduct !== null) {
         window.electronAPI.setDeleteItemState(true, this.$t('menu_delete_product'));
+      } else if (this.focusedCategory !== null) {
+        window.electronAPI.setDeleteItemState(true, this.$t('menu_delete_category'));
       } else if (this.selectedCategoryId !== null) {
         window.electronAPI.setDeleteItemState(true, this.$t('menu_delete_category'));
       } else {

@@ -16,6 +16,20 @@
           }}</template>
         </span>
       </div>
+      <div class="context-menu-item" @click="handleCreateCategory">
+        <span class="context-menu-icon">📁</span>
+        <span>{{
+          $t('add_category') + (targetCategory ? ` ${$t('in')} ${targetCategory.name}` : '')
+        }}</span>
+      </div>
+      <div
+        v-if="targetCategory"
+        class="context-menu-item"
+        @click="handleEditCategory"
+      >
+        <span class="context-menu-icon">✏️</span>
+        <span>{{ $t('edit_category') }}</span>
+      </div>
       <div
         v-if="targetCategory"
         class="context-menu-item context-menu-item--danger"
@@ -34,7 +48,7 @@ export default {
   props: {
     hasDraft: { type: Boolean, default: false },
   },
-  emits: ['delete-product', 'delete-category', 'create-item'],
+  emits: ['delete-product', 'delete-category', 'create-item', 'create-category', 'edit-category'],
   data() {
     return {
       visible: false,
@@ -112,6 +126,16 @@ export default {
     },
     handleCreate() {
       this.$emit('create-item', this.targetCategory);
+      this.close();
+    },
+    handleCreateCategory() {
+      this.$emit('create-category', this.targetCategory);
+      this.close();
+    },
+    handleEditCategory() {
+      if (this.targetCategory) {
+        this.$emit('edit-category', this.targetCategory);
+      }
       this.close();
     },
   },
