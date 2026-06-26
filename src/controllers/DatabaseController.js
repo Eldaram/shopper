@@ -2,6 +2,7 @@ const connection = require('../database/connection');
 const migrations = require('../database/migrations');
 const seeder = require('../database/seeder');
 const log = require('../utils/logger');
+const { app } = require('electron');
 
 class DatabaseController {
   /**
@@ -24,14 +25,18 @@ class DatabaseController {
       throw err;
     }
 
-    // Seed database if empty and in development/test, or if forceSeed is true
+    // Never seed in a packaged/production build — the app is delivered without sample data.
+    const isPackaged = app?.isPackaged === true;
     const isDevOrTest =
-      process.env.NODE_ENV === 'development' ||
-      process.env.NODE_ENV === 'test' ||
-      typeof process.env.NODE_ENV === 'undefined'; // default fallback
+      !isPackaged &&
+      (process.env.NODE_ENV === 'development' ||
+        process.env.NODE_ENV === 'test' ||
+        typeof process.env.NODE_ENV === 'undefined'); // default fallback for local dev
 
     const empty = seeder.isEmpty(db);
-    log.debug(`DatabaseController: Seeder check (empty: ${empty}, isDevOrTest: ${isDevOrTest})`);
+    log.debug(
+      `DatabaseController: Seeder check (empty: ${empty}, isDevOrTest: ${isDevOrTest}, isPackaged: ${isPackaged})`
+    );
 
     if (forceSeed || (isDevOrTest && empty)) {
       log.info('DatabaseController: Seeding database...');
@@ -57,3 +62,4 @@ class DatabaseController {
 }
 
 module.exports = new DatabaseController();
+

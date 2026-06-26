@@ -14,7 +14,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "build:electron": "npm run build && electron-builder",
-    "build:electron:dir": "npm run build && electron-builder --dir"
+    "build:electron:dir": "npm run build && electron-builder --dir",
+    "build:installer": "npm run build && electron-builder --win nsis"
   },
   "keywords": [],
   "author": "Dragan Ribes",
@@ -40,6 +41,7 @@
   "build": {
     "appId": "com.dragan.shopper",
     "productName": "Shopper",
+    "icon": "icon_win.ico",
     "directories": {
       "output": "dist_electron"
     },
@@ -53,7 +55,18 @@
     "win": {
       "target": [
         "nsis"
-      ]
+      ],
+      "icon": "icon_win.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Shopper",
+      "installerIcon": "icon_win.ico",
+      "uninstallerIcon": "icon_win.ico",
+      "deleteAppDataOnUninstall": false
     },
     "mac": {
       "target": [
